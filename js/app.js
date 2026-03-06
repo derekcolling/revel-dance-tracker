@@ -255,7 +255,7 @@ function renderTrackedList() {
                 <span class="text-2xl font-black leading-none ${badgeColor}">${badgeText}</span>
                 <span class="text-[8px] font-bold uppercase tracking-wider ${badgeColor} mt-0.5">${badgeLabel}</span>
             </div>
-            <button onclick="removeTracked('${key}')" class="w-7 h-7 rounded-full text-gray-700 hover:text-red-400 flex items-center justify-center active:scale-90 transition-all text-sm shrink-0">&times;</button>
+            <button onclick="removeTracked('${key}')" class="w-7 h-7 rounded-full text-gray-400 hover:text-red-400 flex items-center justify-center active:scale-90 transition-all text-sm shrink-0">&times;</button>
         `;
         trackedContainer.appendChild(card);
     });
