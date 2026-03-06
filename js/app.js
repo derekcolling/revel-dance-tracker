@@ -231,6 +231,10 @@ function renderTrackedList() {
         } else {
             badgeText = String(away);
             badgeLabel = 'AWAY';
+            badgeColor = 'text-cyan-400';
+            badgeBg = 'bg-cyan-400/10';
+            badgeBorder = 'border-cyan-400/20';
+            numberColor = 'text-cyan-400';
         }
 
         const title = data ? data.routine_title : 'Unknown Routine';
