@@ -49,28 +49,18 @@
             <div class="flex items-center justify-center gap-4">
                 <button id="prevDanceBtn"
                     class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">&minus;</button>
-                <div class="text-6xl font-black text-white leading-none" id="currentDanceDisplay">...</div>
+                <div class="relative">
+                    <div class="text-6xl font-black text-white leading-none cursor-pointer hover:text-electricBlue transition-colors" id="currentDanceDisplay">...</div>
+                    <input type="text" id="currentDanceInput"
+                        class="hidden absolute inset-0 text-6xl font-black text-center bg-transparent border-b-2 border-electricBlue text-white leading-none w-full focus:outline-none min-w-0"
+                        inputmode="text">
+                </div>
                 <button id="nextDanceBtn"
                     class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">+</button>
             </div>
+            <p class="text-[10px] text-gray-600 mt-1" id="tapHint">Tap number to edit</p>
             <h3 class="font-bold text-sm mt-2" id="currentDanceTitle">Loading...</h3>
             <p class="text-xs text-gray-500" id="currentDanceStudio"></p>
-        </section>
-
-        <!-- Set Current Dance -->
-        <section>
-            <div class="bg-surface rounded-2xl p-4 border border-white/5">
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Set Current Dance</p>
-                <div class="flex gap-2">
-                    <input type="text" id="currentDanceInput" placeholder="Dance # on stage"
-                        class="bg-dark border border-gray-700 rounded-xl px-4 py-2.5 flex-1 min-w-0 text-sm focus:outline-none focus:border-neonGreen transition-colors"
-                        inputmode="text">
-                    <button id="setCurrentBtn"
-                        class="bg-neonGreen text-dark font-bold px-5 rounded-xl hover:shadow-[0_0_20px_rgba(57,255,20,0.3)] active:scale-95 transition-all">
-                        SET
-                    </button>
-                </div>
-            </div>
         </section>
 
         <!-- Track a Dance -->

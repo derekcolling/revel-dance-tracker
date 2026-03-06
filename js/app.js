@@ -14,7 +14,7 @@ const trackedCountDisplay = document.getElementById('trackedCount');
 const competitionNameEl = document.getElementById('competitionName');
 const alertToggle = document.getElementById('alertToggle');
 const updateInput = document.getElementById('currentDanceInput');
-const updateBtn = document.getElementById('setCurrentBtn');
+const tapHint = document.getElementById('tapHint');
 const prevDanceBtn = document.getElementById('prevDanceBtn');
 const nextDanceBtn = document.getElementById('nextDanceBtn');
 const searchResults = document.getElementById('searchResults');
@@ -24,31 +24,27 @@ let trackedDances = JSON.parse(localStorage.getItem('danceTrack_saved')) || [];
 let alertsEnabled = localStorage.getItem('danceTrack_alerts') !== 'off';
 let lastAlertedKey = null;
 
-// --- Set current dance ---
+// --- Set current dance (tap-to-edit) ---
 
-function pushUpdate() {
-    const val = updateInput.value.trim().toUpperCase();
-    if (!val) return;
+function enterEditMode() {
+    updateInput.value = currentDanceKey || '';
+    currentDisplay.classList.add('hidden');
+    updateInput.classList.remove('hidden');
+    tapHint.classList.add('hidden');
+    updateInput.focus();
+    updateInput.select();
+}
 
-    if (getPosition(val) === -1) {
-        updateInput.classList.add('border-red-500');
-        setTimeout(() => updateInput.classList.remove('border-red-500'), 1000);
-        return;
+function exitEditMode(commit) {
+    if (commit) {
+        const val = updateInput.value.trim().toUpperCase();
+        if (val && getPosition(val) !== -1) {
+            setDanceByKey(val);
+        }
     }
-
-    if (database) {
-        const danceRef = ref(database, 'competitions/revel2026/currentDance');
-        set(danceRef, val)
-            .then(() => {
-                updateInput.value = '';
-                updateInput.classList.add('border-neonGreen');
-                setTimeout(() => updateInput.classList.remove('border-neonGreen'), 500);
-            })
-            .catch(err => console.error('Firebase update failed:', err));
-    } else {
-        updateCurrentDance(val);
-        updateInput.value = '';
-    }
+    updateInput.classList.add('hidden');
+    currentDisplay.classList.remove('hidden');
+    tapHint.classList.remove('hidden');
 }
 
 function setDanceByKey(key) {
@@ -326,11 +322,13 @@ async function init() {
     sortTracked();
     saveTracked();
 
-    // Set current dance
-    updateBtn.addEventListener('click', pushUpdate);
+    // Tap-to-edit current dance
+    currentDisplay.addEventListener('click', enterEditMode);
     updateInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') pushUpdate();
+        if (e.key === 'Enter') exitEditMode(true);
+        if (e.key === 'Escape') exitEditMode(false);
     });
+    updateInput.addEventListener('blur', () => exitEditMode(true));
     prevDanceBtn.addEventListener('click', goPrev);
     nextDanceBtn.addEventListener('click', goNext);
 
