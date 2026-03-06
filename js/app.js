@@ -286,6 +286,7 @@ function checkAlerts() {
 function updateCurrentDance(key) {
     key = String(key);
     currentDanceKey = key;
+    localStorage.setItem('danceTrack_currentDance', key);
 
     currentDisplay.textContent = '#' + key;
 
@@ -358,7 +359,8 @@ async function init() {
             if (val) updateCurrentDance(val);
         });
     } else {
-        updateCurrentDance('1');
+        const saved = localStorage.getItem('danceTrack_currentDance');
+        updateCurrentDance(saved && getPosition(saved) !== -1 ? saved : '1');
     }
 }
 
