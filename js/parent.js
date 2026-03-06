@@ -1,0 +1,241 @@
+import { database, ref, onValue } from './firebase-config.js';
+import { triggerAlert } from './alerts.js';
+import {
+    loadSchedule, getDance, dancesAway, getCompetitionName, getPosition
+} from './schedule.js';
+
+const currentDisplay = document.getElementById('currentDanceDisplay');
+const currentTitle = document.getElementById('currentDanceTitle');
+const currentStudio = document.getElementById('currentDanceStudio');
+const trackedContainer = document.getElementById('trackedDancesContainer');
+const trackInput = document.getElementById('danceTrackInput');
+const trackBtn = document.getElementById('addTrackBtn');
+const trackedCountDisplay = document.getElementById('trackedCount');
+const competitionNameEl = document.getElementById('competitionName');
+const alertToggle = document.getElementById('alertToggle');
+
+let currentDanceKey = null;
+let trackedDances = JSON.parse(localStorage.getItem('danceTrack_saved')) || [];
+let alertsEnabled = localStorage.getItem('danceTrack_alerts') !== 'off';
+let lastAlertedKey = null;
+
+function saveTracked() {
+    localStorage.setItem('danceTrack_saved', JSON.stringify(trackedDances));
+    renderTrackedList();
+}
+
+function addDance() {
+    const val = trackInput.value.trim().toUpperCase();
+    if (!val) return;
+
+    // Accept the raw value if it's a valid dance key
+    if (getPosition(val) !== -1 && !trackedDances.includes(val)) {
+        trackedDances.push(val);
+        sortTracked();
+        saveTracked();
+        trackInput.value = '';
+        return;
+    }
+
+    // Try as number
+    const num = parseInt(val);
+    if (!isNaN(num)) {
+        const key = String(num);
+        if (getPosition(key) !== -1 && !trackedDances.includes(key)) {
+            trackedDances.push(key);
+            sortTracked();
+            saveTracked();
+            trackInput.value = '';
+            return;
+        }
+    }
+
+    // Invalid — flash the input
+    trackInput.classList.add('border-red-500');
+    setTimeout(() => trackInput.classList.remove('border-red-500'), 1000);
+}
+
+function sortTracked() {
+    trackedDances.sort((a, b) => getPosition(a) - getPosition(b));
+}
+
+function removeTracked(key) {
+    trackedDances = trackedDances.filter(d => d !== key);
+    saveTracked();
+}
+
+window.removeTracked = removeTracked;
+
+function renderTrackedList() {
+    trackedCountDisplay.textContent = trackedDances.length;
+    trackedContainer.innerHTML = '';
+
+    if (trackedDances.length === 0) {
+        trackedContainer.innerHTML = '<p class="text-gray-600 text-sm text-center py-8">Add a dance number above to start tracking</p>';
+        return;
+    }
+
+    trackedDances.forEach(key => {
+        const data = getDance(key);
+        const away = currentDanceKey ? dancesAway(currentDanceKey, key) : null;
+
+        let cardBorder = 'border-white/5';
+        let cardBg = 'bg-surface/50';
+        let statusText = '';
+        let statusColor = 'text-gray-500';
+        let pulseHtml = '';
+        let numberBg = 'bg-dark';
+        let numberBorder = 'border-gray-800';
+        let numberColor = 'text-white';
+
+        if (away === null) {
+            statusText = 'WAITING...';
+        } else if (away < 0) {
+            statusText = 'COMPLETED';
+            statusColor = 'text-gray-600';
+            numberColor = 'text-gray-600';
+        } else if (away === 0) {
+            cardBorder = 'border-electricBlue/30';
+            cardBg = 'card-glow-blue';
+            statusText = 'ON STAGE NOW';
+            statusColor = 'text-electricBlue';
+            pulseHtml = '<div class="w-2 h-2 rounded-full animate-pulse bg-electricBlue"></div>';
+            numberBg = 'bg-electricBlue/20';
+            numberBorder = 'border-electricBlue/30';
+            numberColor = 'text-electricBlue';
+        } else if (away <= 2) {
+            cardBorder = 'border-glowOrange/30';
+            cardBg = 'card-glow-orange';
+            statusText = away === 1 ? 'UP NEXT!' : '2 AWAY';
+            statusColor = 'text-glowOrange';
+            pulseHtml = '<div class="w-2 h-2 rounded-full animate-pulse bg-glowOrange"></div>';
+            numberBg = 'bg-glowOrange/20';
+            numberBorder = 'border-glowOrange/30';
+            numberColor = 'text-glowOrange';
+        } else if (away <= 5) {
+            cardBorder = 'border-neonGreen/20';
+            cardBg = 'card-glow-green';
+            statusText = `${away} AWAY`;
+            statusColor = 'text-neonGreen';
+            numberBg = 'bg-neonGreen/10';
+            numberBorder = 'border-neonGreen/20';
+            numberColor = 'text-neonGreen';
+        } else {
+            statusText = `${away} AWAY`;
+        }
+
+        const title = data ? data.routine_title : 'Unknown Routine';
+        const subtitle = data ? `${data.category} \u2022 ${data.time}` : '';
+
+        const card = document.createElement('div');
+        card.className = `rounded-2xl p-4 flex items-center gap-3 border ${cardBorder} ${cardBg} transition-all`;
+        card.innerHTML = `
+            <div class="w-12 h-12 rounded-xl ${numberBg} flex items-center justify-center border ${numberBorder} shrink-0">
+                <span class="text-sm font-black ${numberColor}">${key}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="font-bold text-sm truncate text-white">${title}</h4>
+                <p class="text-xs text-gray-500 truncate">${subtitle}</p>
+                <div class="flex items-center gap-2 mt-1">
+                    ${pulseHtml}
+                    <span class="text-[10px] uppercase font-black tracking-wider ${statusColor}">${statusText}</span>
+                </div>
+            </div>
+            <button onclick="removeTracked('${key}')" class="w-8 h-8 rounded-full bg-dark/50 text-gray-600 hover:text-red-400 flex items-center justify-center active:scale-90 transition-all text-lg shrink-0">&times;</button>
+        `;
+        trackedContainer.appendChild(card);
+    });
+}
+
+function checkAlerts() {
+    if (!alertsEnabled || !currentDanceKey) return;
+    if (lastAlertedKey === currentDanceKey) return;
+
+    let highestIntensity = null;
+
+    for (const key of trackedDances) {
+        const away = dancesAway(currentDanceKey, key);
+        if (away === null || away < 0) continue;
+
+        if (away <= 1) {
+            highestIntensity = 'high';
+            break; // can't get higher
+        } else if (away <= 3 && highestIntensity !== 'high') {
+            highestIntensity = 'medium';
+        } else if (away <= 5 && !highestIntensity) {
+            highestIntensity = 'low';
+        }
+    }
+
+    if (highestIntensity) {
+        triggerAlert(highestIntensity);
+        lastAlertedKey = currentDanceKey;
+    }
+}
+
+function updateCurrentDance(key) {
+    key = String(key);
+    currentDanceKey = key;
+
+    currentDisplay.textContent = '#' + key;
+
+    const data = getDance(key);
+    if (data) {
+        currentTitle.textContent = data.routine_title;
+        currentStudio.textContent = `${data.studio} \u2022 ${data.category}`;
+    } else {
+        currentTitle.textContent = 'Unknown';
+        currentStudio.textContent = '';
+    }
+
+    renderTrackedList();
+    checkAlerts();
+}
+
+function updateAlertToggleUI() {
+    if (alertsEnabled) {
+        alertToggle.classList.remove('text-gray-600', 'border-gray-800');
+        alertToggle.classList.add('text-neonGreen', 'border-neonGreen/30');
+    } else {
+        alertToggle.classList.remove('text-neonGreen', 'border-neonGreen/30');
+        alertToggle.classList.add('text-gray-600', 'border-gray-800');
+    }
+}
+
+async function init() {
+    await loadSchedule();
+
+    competitionNameEl.textContent = getCompetitionName();
+
+    // Re-sort tracked dances (they might have been saved with old logic)
+    trackedDances = trackedDances.filter(k => getPosition(k) !== -1);
+    sortTracked();
+    saveTracked();
+
+    // Event listeners
+    trackBtn.addEventListener('click', addDance);
+    trackInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') addDance();
+    });
+
+    alertToggle.addEventListener('click', () => {
+        alertsEnabled = !alertsEnabled;
+        localStorage.setItem('danceTrack_alerts', alertsEnabled ? 'on' : 'off');
+        updateAlertToggleUI();
+    });
+    updateAlertToggleUI();
+
+    // Connect to Firebase or run in demo mode
+    if (database) {
+        const danceRef = ref(database, 'competitions/revel2026/currentDance');
+        onValue(danceRef, (snapshot) => {
+            const val = snapshot.val();
+            if (val) updateCurrentDance(val);
+        });
+    } else {
+        // Demo mode — just show dance #1, no auto-advance
+        updateCurrentDance('1');
+    }
+}
+
+init();

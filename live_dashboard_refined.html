@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>Dance Competition Dashboard</title>
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0b">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('Service Worker registered:', reg))
+          .catch(err => console.log('Service Worker failed:', err));
+      });
+    }
+  </script>
+  <!-- Google Fonts: Manrope -->
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap"
+    rel="stylesheet" />
+  <!-- PapaParse for CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>
+    // State Management
+    let dances = [];
+    let starredDances = JSON.parse(localStorage.getItem('starredDances') || '[]'); // Routine Titles
+    let currentOnStage = parseInt(localStorage.getItem('currentOnStage') || '138');
+    let currentView = 'upcoming'; // 'upcoming' or 'favorites'
+    let searchQuery = '';
+
+    // Utility: Save State
+    function saveState() {
+      localStorage.setItem('starredDances', JSON.stringify(starredDances));
+      localStorage.setItem('currentOnStage', currentOnStage);
+    }
+
+    // Core: Load Data
+    async function loadSchedule() {
+      try {
+        const response = await fetch('dance-schedule.csv');
+        const csvText = await response.text();
+
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function (results) {
+            dances = results.data.map(d => ({
+              ...d,
+              number: d['Dance Number'],
+              title: d['Routine Title'],
+              day: d['Day'],
+              time: d['Time'],
+              category: d['Category'],
+              studio: d['Studio']
+            }));
+            setupEventListeners();
+            renderApp();
+            console.log('Schedule loaded:', dances.length, 'dances');
+          }
+        });
+      } catch (error) {
+        console.error('Error loading schedule:', error);
+      }
+    }
+
+    function setupEventListeners() {
+      document.getElementById('prevDance').onclick = () => updateOnStage(-1);
+      document.getElementById('nextDance').onclick = () => updateOnStage(1);
+      document.getElementById('danceSearch').oninput = (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        renderApp();
+      };
+      document.getElementById('toggleScheduleView').onclick = () => {
+        currentView = currentView === 'upcoming' ? 'favorites' : 'upcoming';
+        renderApp();
+      };
+    }
+
+    function updateOnStage(delta) {
+      currentOnStage += delta;
+      saveState();
+      renderApp();
+    }
+
+    function toggleStar(title) {
+      if (starredDances.includes(title)) {
+        starredDances = starredDances.filter(t => t !== title);
+      } else {
+        starredDances.push(title);
+      }
+      saveState();
+      renderApp();
+    }
+
+    function renderApp() {
+      // Update On Stage Number
+      document.getElementById('onStageNumber').innerText = `#${currentOnStage}`;
+
+      // Filter Dances for Schedule
+      let filteredDances = dances;
+      if (searchQuery) {
+        filteredDances = dances.filter(d =>
+          d.title.toLowerCase().includes(searchQuery) ||
+          d.studio.toLowerCase().includes(searchQuery) ||
+          d.number.toLowerCase().includes(searchQuery)
+        );
+      } else if (currentView === 'favorites') {
+        filteredDances = dances.filter(d => starredDances.includes(d.title));
+      } else {
+        // Upcoming logic: filter those with number >= currentOnStage (approximate)
+        // Note: handles 138, 139, 140 sequence
+        filteredDances = dances.filter(d => parseInt(d.number) >= currentOnStage).slice(0, 10);
+      }
+
+      const scheduleList = document.getElementById('scheduleList');
+      scheduleList.innerHTML = filteredDances.map(d => `
+            <div class="bg-surface/50 rounded-2xl p-4 flex items-center gap-4 border border-white/5">
+                <div class="w-12 h-12 rounded-xl bg-black flex flex-col items-center justify-center border border-gray-800">
+                    <span class="text-sm font-black">${d.number}</span>
+                </div>
+                <div class="flex-grow">
+                    <h4 class="font-bold text-sm">${d.title}</h4>
+                    <p class="text-xs text-gray-400">${d.studio} • ${d.time}</p>
+                </div>
+                <button onclick="toggleStar('${d.title.replace(/'/g, "\\'")}')" class="text-2xl">
+                    ${starredDances.includes(d.title) ? '⭐' : '☆'}
+                </button>
+            </div>
+        `).join('');
+
+      document.getElementById('scheduleTitle').innerText = searchQuery ? 'Search Results' : (currentView === 'upcoming' ? 'Upcoming' : 'Your Favorites');
+      document.getElementById('toggleScheduleView').innerText = currentView === 'upcoming' ? 'View Favorites' : 'View All';
+
+      renderNextPerformance();
+    }
+
+    function renderNextPerformance() {
+      const nextStarred = dances
+        .filter(d => starredDances.includes(d.title) && parseInt(d.number) >= currentOnStage)
+        .sort((a, b) => parseInt(a.number) - parseInt(b.number))[0];
+
+      const container = document.getElementById('starredContainer');
+      if (nextStarred) {
+        container.classList.remove('hidden');
+        const away = parseInt(nextStarred.number) - currentOnStage;
+        document.getElementById('nextPerformanceInfo').innerHTML = `
+                <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Your Next Performance</span>
+                <h2 class="text-2xl font-bold mt-1">#${nextStarred.number} ${nextStarred.title}</h2>
+                <p class="text-electricBlue font-medium">${nextStarred.category}</p>
+            `;
+        document.getElementById('dancesAwayText').innerText = away === 0 ? 'ON STAGE NOW' : `${away} AWAY`;
+        document.getElementById('nextEstTime').innerText = nextStarred.time;
+        document.getElementById('backstageCall').innerText = `#${Math.max(0, parseInt(nextStarred.number) - 5)}`;
+      } else {
+        container.classList.add('hidden');
+      }
+    }
+
+    // Initialize
+    window.onload = loadSchedule;
+  </script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            dark: '#121212',
+            surface: '#1E1E1E',
+            neonGreen: '#39FF14',
+            electricBlue: '#00E5FF',
+            glowOrange: '#FF4D00',
+          }
+        }
+      }
+    }
+  </script>
+  <style data-purpose="custom-gradients">
+    .progress-ring-gradient {
+      background: rgba(0, 229, 255, 0.15);
+    }
+
+    .card-glow-blue {
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+    }
+
+    .active-nav-glow {
+      filter: drop-shadow(0 0 8px #39FF14);
+    }
+
+    .neon-border-bottom {
+      border-bottom: 2px solid #39FF14;
+    }
+
+    body {
+      background-color: #121212;
+      color: #FFFFFF;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+
+<body class="flex flex-col min-h-screen max-w-md mx-auto overflow-x-hidden">
+  <!-- BEGIN: Header Section -->
+  <header class="pt-8 px-6 pb-4 flex justify-between items-center" data-purpose="app-header">
+    <div class="flex flex-col">
+      <span class="text-xs text-gray-400 font-medium uppercase tracking-widest">Live Competition</span>
+      <h1 class="text-xl font-bold">Elite Dance Tour</h1>
+    </div>
+    <div class="w-10 h-10 rounded-full border-2 border-gray-700 overflow-hidden">
+      <img alt="User Avatar" class="w-full h-full object-cover"
+        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIFy_8IpOBr-dQMVZ_c3XgFwGPQdE9G7TfxerBLC-4uPsXSKnumm14one7CDtwxBrM280izBIIBE0_zXpfptkgPl4xMMjQl3L6y0KqCjBpY1BZ1SjvwW_9WXvmtcTvbap5wJ5RvZgfPRN1CD4YtCCWaCNMeQjypEJ_PNcXvRZMdG6rA3cG3WE9Vo4ejPjylStI4-JcnWqyh73QPwu6PIjtcH0L2GhHMkDtJKIslrK8RXeYA8YmWx6w6yCpr8YWbCwKQLPdphOep34" />
+    </div>
+  </header>
+  <!-- END: Header Section -->
+  <main class="flex-grow px-6 space-y-8 pb-24">
+    <!-- BEGIN: On Stage Status -->
+    <section class="flex flex-col items-center justify-center py-6" data-purpose="on-stage-display">
+      <div class="relative w-64 h-64 flex items-center justify-center">
+        <!-- Circular Progress Ring -->
+        <div class="absolute inset-0 rounded-full progress-ring-gradient opacity-20"></div>
+        <div class="absolute inset-2 rounded-full border-4 border-dashed border-electricBlue/30"></div>
+        <!-- Inner Content -->
+        <div class="flex flex-col items-center">
+          <span class="text-electricBlue font-bold tracking-widest text-sm mb-1 uppercase">On Stage</span>
+          <span class="text-7xl font-extrabold text-white" id="onStageNumber">#138</span>
+          <div class="mt-4 flex items-center gap-4">
+            <!-- Stepper Controls -->
+            <button
+              class="w-10 h-10 rounded-full bg-surface border border-gray-700 flex items-center justify-center active:scale-95 transition-transform"
+              data-purpose="decrement-button" id="prevDance">
+              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 12H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+            <button
+              class="w-10 h-10 rounded-full bg-surface border border-gray-700 flex items-center justify-center active:scale-95 transition-transform"
+              data-purpose="increment-button" id="nextDance">
+              <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END: On Stage Status -->
+
+    <!-- BEGIN: Search Section -->
+    <section class="px-6 -mt-4">
+      <div class="relative">
+        <input type="text" id="danceSearch" placeholder="Search routine, kid, or studio..."
+          class="w-full bg-surface border border-gray-800 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-electricBlue transition-colors text-white">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor"
+          viewbox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      </div>
+    </section>
+    <!-- END: Search Section -->
+    <!-- BEGIN: Next Dance Card -->
+    <section data-purpose="next-dance-info" id="starredContainer" class="hidden">
+      <div class="bg-surface rounded-3xl p-6 border border-white/5 card-glow-blue relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-electricBlue/10 blur-3xl -mr-16 -mt-16"></div>
+        <div class="flex justify-between items-start mb-6">
+          <div id="nextPerformanceInfo">
+            <span class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Your Next Performance</span>
+            <h2 class="text-2xl font-bold mt-1">#156 Sarah M.</h2>
+            <p class="text-electricBlue font-medium">Jazz Solo - Intermediate</p>
+          </div>
+          <div
+            class="border px-3 py-1.5 rounded-full flex items-center gap-2 bg-electricBlue/20 border-electricBlue/30">
+            <div class="w-2 h-2 rounded-full animate-pulse bg-electricBlue"></div>
+            <span class="text-xs font-black text-electricBlue" id="dancesAwayText">14 AWAY</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-black/20 p-3 rounded-2xl">
+            <span class="text-gray-500 text-[10px] uppercase font-bold">Estimated Time</span>
+            <p class="text-lg font-bold" id="nextEstTime">1:45 PM</p>
+          </div>
+          <div class="bg-black/20 p-3 rounded-2xl">
+            <span class="text-gray-500 text-[10px] uppercase font-bold">Backstage Call</span>
+            <p class="text-lg font-bold text-neonGreen" id="backstageCall">#150</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- END: Next Dance Card -->
+    <!-- BEGIN: Schedule Section -->
+    <section class="space-y-4" data-purpose="mini-schedule">
+      <div class="flex justify-between items-end">
+        <h3 class="text-lg font-bold" id="scheduleTitle">Upcoming</h3>
+        <button class="text-electricBlue text-xs font-bold px-2 py-1 rounded-lg bg-electricBlue/10"
+          id="toggleScheduleView">View Favorites</button>
+      </div>
+      <div class="space-y-3" id="scheduleList">
+        <!-- Dynamically Filled -->
+      </div>
+    </section>
+    <!-- END: Schedule Section -->
+  </main>
+  <!-- BEGIN: Navigation Bar -->
+  <nav
+    class="fixed bottom-0 left-0 right-0 bg-dark/80 backdrop-blur-xl border-t border-white/5 px-8 py-4 flex justify-between items-center max-w-md mx-auto z-50"
+    data-purpose="bottom-navigation">
+    <button class="flex flex-col items-center text-neonGreen active-nav-glow" data-purpose="nav-home">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+      <div class="w-1 h-1 bg-neonGreen rounded-full mt-1"></div>
+    </button>
+    <button class="flex flex-col items-center text-gray-500" data-purpose="nav-schedule">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </button>
+    <!-- Center Action Button -->
+    <button
+      class="flex items-center justify-center w-14 h-14 rounded-full progress-ring-gradient -mt-10 shadow-lg shadow-neonGreen/20"
+      data-purpose="nav-scan">
+      <svg class="h-7 w-7 text-dark" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+        xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+      </svg>
+    </button>
+    <button class="flex flex-col items-center text-gray-500" data-purpose="nav-results">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+          stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </button>
+    <button class="flex flex-col items-center text-gray-500" data-purpose="nav-profile">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round"
+          stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </button>
+  </nav>
+  <!-- END: Navigation Bar -->
+</body>
+
+</html>

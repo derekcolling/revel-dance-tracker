@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Revel Dance Competition - Live Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
+                    colors: {
+                        dark: '#121212',
+                        surface: '#1E1E1E',
+                        neonGreen: '#39FF14',
+                        electricBlue: '#00E5FF'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body class="flex flex-col items-center justify-center min-h-screen bg-dark text-white p-6">
+    <div class="text-center space-y-10 max-w-sm w-full">
+        <div>
+            <div
+                class="w-16 h-16 rounded-2xl bg-electricBlue/10 border border-electricBlue/20 flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-electricBlue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
+                        stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                </svg>
+            </div>
+            <h1 class="text-2xl font-black">Revel Dance Competition</h1>
+            <p class="text-gray-500 text-sm mt-1">Live Performance Tracker</p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-surface rounded-3xl p-6 border border-white/5 shadow-xl">
+                <p class="text-gray-500 uppercase tracking-widest font-bold text-[10px] mb-2">Currently On Stage</p>
+                <div class="text-6xl font-black text-electricBlue leading-none mb-1" id="currentDanceDisplay">#1</div>
+                <div id="currentDanceDetails" class="hidden">
+                    <p class="text-sm font-bold text-white truncate" id="currentDanceTitle"></p>
+                    <p class="text-[10px] text-gray-500 truncate" id="currentDanceInfo"></p>
+                </div>
+
+                <div class="mt-6 flex gap-2">
+                    <input type="text" id="quickUpdateInput" placeholder="Update to #"
+                        class="bg-dark border border-gray-700 rounded-xl px-4 py-3 flex-1 text-sm focus:outline-none focus:border-neonGreen transition-colors"
+                        inputmode="text">
+                    <button id="quickUpdateBtn"
+                        class="bg-neonGreen text-dark font-black px-6 rounded-xl hover:shadow-[0_0_20px_rgba(57,255,20,0.3)] active:scale-95 transition-all">
+                        SET
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <a href="parent.html"
+                    class="block w-full py-4 rounded-2xl bg-electricBlue text-dark font-bold text-lg hover:bg-cyan-300 active:scale-[0.98] transition-all text-center">
+                    Track My Dances
+                </a>
+                <a href="admin.html"
+                    class="block w-full py-4 rounded-2xl border border-gray-700 font-bold hover:bg-surface active:scale-[0.98] transition-all text-center text-gray-300">
+                    Stage Manager
+                </a>
+            </div>
+        </div>
+
+        <p class="text-gray-700 text-xs text-center">No login required. Just pick your dances and watch live.</p>
+    </div>
+
+    <script type="module" src="js/index.js"></script>
+</body>
+
+</html>
