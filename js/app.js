@@ -27,12 +27,12 @@ let lastAlertedKey = null;
 // --- Set current dance (tap-to-edit) ---
 
 function enterEditMode() {
-    updateInput.value = currentDanceKey || '';
+    updateInput.value = '';
+    updateInput.placeholder = currentDanceKey || '---';
     currentDisplay.classList.add('hidden');
     updateInput.classList.remove('hidden');
-    tapHint.classList.add('hidden');
+    tapHint.textContent = 'Type a dance # then press enter';
     updateInput.focus();
-    updateInput.select();
 }
 
 function exitEditMode(commit) {
@@ -44,7 +44,7 @@ function exitEditMode(commit) {
     }
     updateInput.classList.add('hidden');
     currentDisplay.classList.remove('hidden');
-    tapHint.classList.remove('hidden');
+    tapHint.textContent = 'Tap number to edit';
 }
 
 function setDanceByKey(key) {

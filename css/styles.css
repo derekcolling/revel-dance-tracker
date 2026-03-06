@@ -46,6 +46,15 @@ input, select, textarea {
   font-size: 16px !important;
 }
 
+/* Let the big inline dance input keep its size */
+#currentDanceInput {
+  font-size: inherit !important;
+}
+
+#currentDanceInput::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
 /* Input error flash */
 input.border-red-500 {
   animation: shake 0.3s ease;
