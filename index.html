@@ -45,9 +45,15 @@
 
         <!-- On Stage Display -->
         <section class="bg-surface rounded-3xl p-6 border border-white/5 text-center">
-            <p class="text-electricBlue font-bold tracking-widest text-[10px] mb-2 uppercase">On Stage</p>
-            <div class="text-6xl font-black text-white leading-none mb-2" id="currentDanceDisplay">...</div>
-            <h3 class="font-bold text-sm" id="currentDanceTitle">Loading...</h3>
+            <p class="text-electricBlue font-bold tracking-widest text-[10px] mb-3 uppercase">On Stage</p>
+            <div class="flex items-center justify-center gap-4">
+                <button id="prevDanceBtn"
+                    class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">&minus;</button>
+                <div class="text-6xl font-black text-white leading-none" id="currentDanceDisplay">...</div>
+                <button id="nextDanceBtn"
+                    class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">+</button>
+            </div>
+            <h3 class="font-bold text-sm mt-2" id="currentDanceTitle">Loading...</h3>
             <p class="text-xs text-gray-500" id="currentDanceStudio"></p>
         </section>
 
@@ -69,15 +75,16 @@
 
         <!-- Track a Dance -->
         <section>
-            <div class="bg-surface rounded-2xl p-4 border border-white/5">
+            <div class="bg-surface rounded-2xl p-4 border border-white/5 relative">
                 <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Track a Dance</p>
                 <div class="flex gap-2">
-                    <input type="text" id="danceTrackInput" placeholder="Enter dance # to track"
+                    <input type="text" id="danceTrackInput" placeholder="Search by #, name, or studio"
                         class="bg-dark border border-gray-700 rounded-xl px-4 py-2.5 flex-1 text-sm focus:outline-none focus:border-electricBlue transition-colors"
-                        inputmode="text">
+                        autocomplete="off">
                     <button id="addTrackBtn"
                         class="bg-electricBlue text-dark font-bold px-5 rounded-xl hover:bg-cyan-300 active:scale-95 transition-all text-lg">+</button>
                 </div>
+                <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-1 mx-4 bg-dark border border-gray-700 rounded-xl overflow-hidden z-10 max-h-60 overflow-y-auto"></div>
             </div>
         </section>
 

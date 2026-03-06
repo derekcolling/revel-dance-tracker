@@ -1,7 +1,7 @@
 import { database, ref, set, onValue } from './firebase-config.js';
 import { triggerAlert } from './alerts.js';
 import {
-    loadSchedule, getDance, dancesAway, getCompetitionName, getPosition
+    loadSchedule, getDance, dancesAway, getCompetitionName, getPosition, getKeyAtPosition, searchDances
 } from './schedule.js';
 
 const currentDisplay = document.getElementById('currentDanceDisplay');
@@ -15,6 +15,9 @@ const competitionNameEl = document.getElementById('competitionName');
 const alertToggle = document.getElementById('alertToggle');
 const updateInput = document.getElementById('currentDanceInput');
 const updateBtn = document.getElementById('setCurrentBtn');
+const prevDanceBtn = document.getElementById('prevDanceBtn');
+const nextDanceBtn = document.getElementById('nextDanceBtn');
+const searchResults = document.getElementById('searchResults');
 
 let currentDanceKey = null;
 let trackedDances = JSON.parse(localStorage.getItem('danceTrack_saved')) || [];
@@ -48,6 +51,29 @@ function pushUpdate() {
     }
 }
 
+function setDanceByKey(key) {
+    if (database) {
+        const danceRef = ref(database, 'competitions/revel2026/currentDance');
+        set(danceRef, key).catch(err => console.error('Firebase update failed:', err));
+    } else {
+        updateCurrentDance(key);
+    }
+}
+
+function goPrev() {
+    if (!currentDanceKey) return;
+    const pos = getPosition(currentDanceKey);
+    const prevKey = getKeyAtPosition(pos - 1);
+    if (prevKey) setDanceByKey(prevKey);
+}
+
+function goNext() {
+    if (!currentDanceKey) return;
+    const pos = getPosition(currentDanceKey);
+    const nextKey = getKeyAtPosition(pos + 1);
+    if (nextKey) setDanceByKey(nextKey);
+}
+
 // --- Track dances ---
 
 function saveTracked() {
@@ -60,10 +86,7 @@ function addDance() {
     if (!val) return;
 
     if (getPosition(val) !== -1 && !trackedDances.includes(val)) {
-        trackedDances.push(val);
-        sortTracked();
-        saveTracked();
-        trackInput.value = '';
+        trackDanceKey(val);
         return;
     }
 
@@ -71,16 +94,71 @@ function addDance() {
     if (!isNaN(num)) {
         const key = String(num);
         if (getPosition(key) !== -1 && !trackedDances.includes(key)) {
-            trackedDances.push(key);
-            sortTracked();
-            saveTracked();
-            trackInput.value = '';
+            trackDanceKey(key);
             return;
         }
     }
 
+    // If there's exactly one search result, add it
+    const results = searchDances(trackInput.value.trim());
+    if (results.length === 1 && !trackedDances.includes(results[0])) {
+        trackDanceKey(results[0]);
+        return;
+    }
+
     trackInput.classList.add('border-red-500');
     setTimeout(() => trackInput.classList.remove('border-red-500'), 1000);
+}
+
+function trackDanceKey(key) {
+    trackedDances.push(key);
+    sortTracked();
+    saveTracked();
+    trackInput.value = '';
+    hideSearch();
+}
+
+function showSearchResults(query) {
+    if (!query || query.length < 1) {
+        hideSearch();
+        return;
+    }
+
+    const results = searchDances(query).slice(0, 8);
+    if (results.length === 0) {
+        hideSearch();
+        return;
+    }
+
+    searchResults.innerHTML = '';
+    results.forEach(key => {
+        const data = getDance(key);
+        const row = document.createElement('button');
+        row.type = 'button';
+        const alreadyTracked = trackedDances.includes(key);
+        row.className = `w-full text-left px-4 py-2.5 hover:bg-surface transition-colors flex items-center gap-3 ${alreadyTracked ? 'opacity-40' : ''}`;
+        row.innerHTML = `
+            <span class="text-electricBlue font-black text-sm w-8 shrink-0">${key}</span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold truncate">${data ? data.routine_title : 'Unknown'}</p>
+                <p class="text-[10px] text-gray-500 truncate">${data ? data.studio : ''}</p>
+            </div>
+            ${alreadyTracked ? '<span class="text-[10px] text-gray-600 shrink-0">ADDED</span>' : ''}
+        `;
+        if (!alreadyTracked) {
+            row.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                trackDanceKey(key);
+            });
+        }
+        searchResults.appendChild(row);
+    });
+    searchResults.classList.remove('hidden');
+}
+
+function hideSearch() {
+    searchResults.classList.add('hidden');
+    searchResults.innerHTML = '';
 }
 
 function sortTracked() {
@@ -252,12 +330,17 @@ async function init() {
     updateInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') pushUpdate();
     });
+    prevDanceBtn.addEventListener('click', goPrev);
+    nextDanceBtn.addEventListener('click', goNext);
 
     // Track dances
     trackBtn.addEventListener('click', addDance);
     trackInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') addDance();
+        if (e.key === 'Escape') hideSearch();
     });
+    trackInput.addEventListener('input', () => showSearchResults(trackInput.value.trim()));
+    trackInput.addEventListener('blur', () => setTimeout(hideSearch, 150));
 
     // Alert toggle
     alertToggle.addEventListener('click', () => {

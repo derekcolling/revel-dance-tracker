@@ -62,6 +62,23 @@ export function getUpcoming(currentKey, count = 5) {
     return upcoming;
 }
 
+// Search dances by name, studio, or number — returns matching keys
+export function searchDances(query) {
+    const q = query.toLowerCase();
+    const results = [];
+    for (const key of orderedKeys) {
+        const d = danceMap[key];
+        if (
+            key.toLowerCase().includes(q) ||
+            (d.routine_title && d.routine_title.toLowerCase().includes(q)) ||
+            (d.studio && d.studio.toLowerCase().includes(q))
+        ) {
+            results.push(key);
+        }
+    }
+    return results;
+}
+
 // Get dances for a specific day
 export function getDaysAvailable() {
     const days = new Set();
