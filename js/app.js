@@ -1,4 +1,4 @@
-import { database, ref, onValue } from './firebase-config.js';
+import { database, ref, set, onValue } from './firebase-config.js';
 import { triggerAlert } from './alerts.js';
 import {
     loadSchedule, getDance, dancesAway, getCompetitionName, getPosition
@@ -13,11 +13,42 @@ const trackBtn = document.getElementById('addTrackBtn');
 const trackedCountDisplay = document.getElementById('trackedCount');
 const competitionNameEl = document.getElementById('competitionName');
 const alertToggle = document.getElementById('alertToggle');
+const updateInput = document.getElementById('currentDanceInput');
+const updateBtn = document.getElementById('setCurrentBtn');
 
 let currentDanceKey = null;
 let trackedDances = JSON.parse(localStorage.getItem('danceTrack_saved')) || [];
 let alertsEnabled = localStorage.getItem('danceTrack_alerts') !== 'off';
 let lastAlertedKey = null;
+
+// --- Set current dance ---
+
+function pushUpdate() {
+    const val = updateInput.value.trim().toUpperCase();
+    if (!val) return;
+
+    if (getPosition(val) === -1) {
+        updateInput.classList.add('border-red-500');
+        setTimeout(() => updateInput.classList.remove('border-red-500'), 1000);
+        return;
+    }
+
+    if (database) {
+        const danceRef = ref(database, 'competitions/revel2026/currentDance');
+        set(danceRef, val)
+            .then(() => {
+                updateInput.value = '';
+                updateInput.classList.add('border-neonGreen');
+                setTimeout(() => updateInput.classList.remove('border-neonGreen'), 500);
+            })
+            .catch(err => console.error('Firebase update failed:', err));
+    } else {
+        updateCurrentDance(val);
+        updateInput.value = '';
+    }
+}
+
+// --- Track dances ---
 
 function saveTracked() {
     localStorage.setItem('danceTrack_saved', JSON.stringify(trackedDances));
@@ -28,7 +59,6 @@ function addDance() {
     const val = trackInput.value.trim().toUpperCase();
     if (!val) return;
 
-    // Accept the raw value if it's a valid dance key
     if (getPosition(val) !== -1 && !trackedDances.includes(val)) {
         trackedDances.push(val);
         sortTracked();
@@ -37,7 +67,6 @@ function addDance() {
         return;
     }
 
-    // Try as number
     const num = parseInt(val);
     if (!isNaN(num)) {
         const key = String(num);
@@ -50,7 +79,6 @@ function addDance() {
         }
     }
 
-    // Invalid — flash the input
     trackInput.classList.add('border-red-500');
     setTimeout(() => trackInput.classList.remove('border-red-500'), 1000);
 }
@@ -125,7 +153,7 @@ function renderTrackedList() {
         }
 
         const title = data ? data.routine_title : 'Unknown Routine';
-        const subtitle = data ? `${data.category} \u2022 ${data.time}` : '';
+        const subtitle = data ? `${data.category} • ${data.time}` : '';
 
         const card = document.createElement('div');
         card.className = `rounded-2xl p-4 flex items-center gap-3 border ${cardBorder} ${cardBg} transition-all`;
@@ -147,6 +175,8 @@ function renderTrackedList() {
     });
 }
 
+// --- Alerts ---
+
 function checkAlerts() {
     if (!alertsEnabled || !currentDanceKey) return;
     if (lastAlertedKey === currentDanceKey) return;
@@ -159,7 +189,7 @@ function checkAlerts() {
 
         if (away <= 1) {
             highestIntensity = 'high';
-            break; // can't get higher
+            break;
         } else if (away <= 3 && highestIntensity !== 'high') {
             highestIntensity = 'medium';
         } else if (away <= 5 && !highestIntensity) {
@@ -173,6 +203,8 @@ function checkAlerts() {
     }
 }
 
+// --- Current dance display ---
+
 function updateCurrentDance(key) {
     key = String(key);
     currentDanceKey = key;
@@ -182,7 +214,7 @@ function updateCurrentDance(key) {
     const data = getDance(key);
     if (data) {
         currentTitle.textContent = data.routine_title;
-        currentStudio.textContent = `${data.studio} \u2022 ${data.category}`;
+        currentStudio.textContent = `${data.studio} • ${data.category}`;
     } else {
         currentTitle.textContent = 'Unknown';
         currentStudio.textContent = '';
@@ -191,6 +223,8 @@ function updateCurrentDance(key) {
     renderTrackedList();
     checkAlerts();
 }
+
+// --- Alert toggle ---
 
 function updateAlertToggleUI() {
     if (alertsEnabled) {
@@ -202,22 +236,30 @@ function updateAlertToggleUI() {
     }
 }
 
+// --- Init ---
+
 async function init() {
     await loadSchedule();
 
     competitionNameEl.textContent = getCompetitionName();
 
-    // Re-sort tracked dances (they might have been saved with old logic)
     trackedDances = trackedDances.filter(k => getPosition(k) !== -1);
     sortTracked();
     saveTracked();
 
-    // Event listeners
+    // Set current dance
+    updateBtn.addEventListener('click', pushUpdate);
+    updateInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') pushUpdate();
+    });
+
+    // Track dances
     trackBtn.addEventListener('click', addDance);
     trackInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') addDance();
     });
 
+    // Alert toggle
     alertToggle.addEventListener('click', () => {
         alertsEnabled = !alertsEnabled;
         localStorage.setItem('danceTrack_alerts', alertsEnabled ? 'on' : 'off');
@@ -225,7 +267,7 @@ async function init() {
     });
     updateAlertToggleUI();
 
-    // Connect to Firebase or run in demo mode
+    // Connect to Firebase or demo mode
     if (database) {
         const danceRef = ref(database, 'competitions/revel2026/currentDance');
         onValue(danceRef, (snapshot) => {
@@ -233,7 +275,6 @@ async function init() {
             if (val) updateCurrentDance(val);
         });
     } else {
-        // Demo mode — just show dance #1, no auto-advance
         updateCurrentDance('1');
     }
 }
