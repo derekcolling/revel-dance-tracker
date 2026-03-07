@@ -101,6 +101,43 @@
             color: #555;
         }
 
+        .on-stage-start-time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* Out-of-order / inserted dance */
+        .on-stage.out-of-order {
+            background: rgba(250, 204, 21, 0.08);
+            border-color: rgba(250, 204, 21, 0.3);
+        }
+
+        .on-stage.out-of-order .on-stage-label {
+            color: #facc15;
+        }
+
+        .on-stage.out-of-order .on-stage-number {
+            color: #facc15;
+        }
+
+        .schedule-change-tag {
+            display: none;
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: #facc15;
+            background: rgba(250, 204, 21, 0.12);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+
+        .on-stage.out-of-order .schedule-change-tag {
+            display: inline-block;
+        }
+
         /* Live Stream Toggle */
         .live-btn {
             display: flex;
@@ -298,12 +335,6 @@
             background: rgba(57, 255, 20, 0.04);
         }
 
-        .dance.highlighted.done {
-            border-left-color: transparent;
-            background: transparent;
-            opacity: 0.4;
-        }
-
         /* On-stage row in the list */
         .dance.current-dance {
             background: rgba(37, 78, 240, 0.12);
@@ -316,6 +347,21 @@
 
         .dance.current-dance .current-label {
             display: inline-block;
+        }
+
+        /* Out-of-order row in the list */
+        .dance.current-dance.out-of-order-row {
+            background: rgba(250, 204, 21, 0.1);
+            border-left-color: #facc15;
+        }
+
+        .dance.current-dance.out-of-order-row .num {
+            color: #facc15;
+        }
+
+        .dance.current-dance.out-of-order-row .current-label {
+            color: #facc15;
+            background: rgba(250, 204, 21, 0.15);
         }
 
         .num {
@@ -454,8 +500,10 @@
             </div>
             <div class="on-stage-info">
                 <div class="on-stage-waiting" id="onStageWaiting">Waiting for update</div>
+                <div class="on-stage-start-time" id="onStageStartTime"></div>
                 <div class="on-stage-title" id="onStageTitle" style="display:none"></div>
                 <div class="on-stage-studio" id="onStageStudio" style="display:none"></div>
+                <div class="schedule-change-tag" id="scheduleChangeTag">Schedule change</div>
             </div>
         </div>
 
@@ -493,6 +541,8 @@
 
         // --- State ---
         let currentDanceKey = null;
+        let previousDanceKey = null;
+        let isOutOfOrder = false;
         let highlightedDances = JSON.parse(localStorage.getItem('highlightedDances') || '[]');
         let activeDay = 'Saturday';
         let premierOnly = false;
@@ -507,6 +557,8 @@
         const onStageStudio = document.getElementById('onStageStudio');
         const onStageWaiting = document.getElementById('onStageWaiting');
         const jumpBtn = document.getElementById('jumpToCurrent');
+        const onStageEl = document.getElementById('onStage');
+        const onStageStartTime = document.getElementById('onStageStartTime');
         const liveToggleBtn = document.getElementById('liveToggleBtn');
         const liveStreamContainer = document.getElementById('liveStreamContainer');
         const liveStreamFrame = document.getElementById('liveStreamFrame');
@@ -526,11 +578,24 @@
             }
 
             renderList();
+            showStartTime();
             setupFirebaseListener();
             setupLiveStream();
             setupDayTabs();
             setupPremierToggle();
             setupJumpButton();
+        }
+
+        // --- Show start time when competition hasn't started ---
+        function showStartTime() {
+            const orderedKeys = getOrderedKeys();
+            for (const key of orderedKeys) {
+                const dance = getDance(key);
+                if (dance && dance.day === activeDay) {
+                    onStageStartTime.textContent = `${activeDay} starts at ${dance.time}`;
+                    break;
+                }
+            }
         }
 
         // --- Render dance list ---
@@ -544,6 +609,12 @@
                 const dance = getDance(key);
                 if (!dance || dance.day !== activeDay) continue;
                 if (premierOnly && !dance.studio.toLowerCase().includes('premier dance')) continue;
+
+                // Hide dances that have already performed
+                if (currentDanceKey) {
+                    const away = dancesAway(currentDanceKey, key);
+                    if (away !== null && away < 0) continue;
+                }
 
                 visibleCount++;
                 const isHighlighted = highlightedDances.includes(key);
@@ -689,6 +760,22 @@
 
         // --- Update current dance ---
         function updateCurrentDance(key) {
+            // Detect out-of-order: if new key's position is not after previous key's position
+            isOutOfOrder = false;
+            if (previousDanceKey && key !== previousDanceKey) {
+                const prevPos = getPosition(previousDanceKey);
+                const newPos = getPosition(key);
+                if (prevPos !== -1 && newPos !== -1) {
+                    // Expected: newPos === prevPos + 1 (next in sequence)
+                    // Out of order: jumped forward by more than 1, or went backward
+                    isOutOfOrder = (newPos !== prevPos + 1);
+                } else if (newPos === -1) {
+                    // Dance not in schedule at all — inserted
+                    isOutOfOrder = true;
+                }
+            }
+
+            previousDanceKey = currentDanceKey;
             currentDanceKey = key;
 
             // Update header
@@ -700,17 +787,31 @@
                 onStageTitle.style.display = '';
                 onStageStudio.style.display = '';
                 onStageWaiting.style.display = 'none';
+                onStageStartTime.style.display = 'none';
+            } else {
+                // Dance not in schedule — show as unscheduled
+                onStageTitle.textContent = 'Not in schedule';
+                onStageTitle.style.display = '';
+                onStageStudio.textContent = '';
+                onStageWaiting.style.display = 'none';
+                onStageStartTime.style.display = 'none';
+                isOutOfOrder = true;
             }
 
-            updateCurrentDanceRow();
-            updateProximityBadges();
+            // Toggle out-of-order styling on header
+            onStageEl.classList.toggle('out-of-order', isOutOfOrder);
+
+            // Re-render to hide past dances
+            renderList();
         }
 
         // --- Highlight the current dance row in the list ---
         function updateCurrentDanceRow() {
             // Remove previous
             const prev = listEl.querySelector('.dance.current-dance');
-            if (prev) prev.classList.remove('current-dance');
+            if (prev) {
+                prev.classList.remove('current-dance', 'out-of-order-row');
+            }
 
             if (!currentDanceKey) return;
 
@@ -718,6 +819,7 @@
             if (row) {
                 const danceEl = row.querySelector('.dance');
                 danceEl.classList.add('current-dance');
+                if (isOutOfOrder) danceEl.classList.add('out-of-order-row');
                 observeCurrentRow(row);
             }
         }
@@ -734,16 +836,16 @@
                 // Remove previous badge and classes
                 const oldBadge = danceEl.querySelector('.proximity-badge');
                 if (oldBadge) oldBadge.remove();
-                danceEl.classList.remove('soon-1-2', 'soon-3-5', 'done');
+                danceEl.classList.remove('soon-1-2', 'soon-3-5');
 
                 if (!isHighlighted) return;
 
                 const away = dancesAway(currentDanceKey, key);
                 if (away === null) return;
 
-                if (away < 0) {
-                    danceEl.classList.add('done');
-                } else if (away === 0) {
+                if (away < 0) return; // past dances are hidden from the list
+
+                if (away === 0) {
                     const badge = document.createElement('span');
                     badge.className = 'proximity-badge now';
                     badge.textContent = 'Now';
@@ -769,13 +871,17 @@
         }
 
         // --- Jump to Current button ---
+        function scrollToRow(row) {
+            const headerHeight = document.querySelector('header').offsetHeight;
+            const rowTop = row.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: rowTop - headerHeight - 8, behavior: 'smooth' });
+        }
+
         function setupJumpButton() {
             jumpBtn.addEventListener('click', () => {
                 if (!currentDanceKey) return;
                 const row = listEl.querySelector(`[data-dance-key="${currentDanceKey}"]`);
-                if (row) {
-                    row.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (row) scrollToRow(row);
             });
         }
 
@@ -813,6 +919,7 @@
                 tab.addEventListener('click', () => {
                     activeDay = tab.dataset.day;
                     dayTabs.forEach(t => t.classList.toggle('active', t.dataset.day === activeDay));
+                    if (!currentDanceKey) showStartTime();
                     renderList();
                 });
             });
