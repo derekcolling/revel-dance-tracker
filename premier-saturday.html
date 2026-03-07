@@ -805,6 +805,7 @@
             listEl.querySelectorAll('.dance-row').forEach(row => {
                 const key = row.dataset.danceKey;
                 const danceEl = row.querySelector('.dance');
+                const trackBtn = danceEl.querySelector('.track-btn');
                 const isHighlighted = highlightedDances.includes(key);
 
                 // Remove previous badge and classes
@@ -812,18 +813,28 @@
                 if (oldBadge) oldBadge.remove();
                 danceEl.classList.remove('soon-1-2', 'soon-3-5');
 
-                if (!isHighlighted) return;
-
                 const away = dancesAway(currentDanceKey, key);
                 if (away === null) return;
+                if (away < 0) return;
 
-                if (away < 0) return; // past dances are hidden from the list
-
-                const badge = document.createElement('span');
+                // Current dance: always show "On Stage" badge
                 if (away === 0) {
+                    const badge = document.createElement('span');
                     badge.className = 'proximity-badge now';
                     badge.textContent = 'On Stage';
-                } else if (away <= 2) {
+                    if (trackBtn) trackBtn.style.display = 'none';
+                    danceEl.appendChild(badge);
+                    return;
+                }
+
+                // Show track button for non-highlighted, non-current dances
+                if (!isHighlighted) {
+                    if (trackBtn) trackBtn.style.display = '';
+                    return;
+                }
+
+                const badge = document.createElement('span');
+                if (away <= 2) {
                     danceEl.classList.add('soon-1-2');
                     badge.className = 'proximity-badge urgent';
                     badge.textContent = away === 1 ? 'Next' : '2 away';
@@ -842,8 +853,6 @@
                     localStorage.setItem('highlightedDances', JSON.stringify(highlightedDances));
                     danceEl.classList.remove('highlighted', 'soon-1-2', 'soon-3-5');
                     badge.remove();
-                    // Show track button again
-                    const trackBtn = danceEl.querySelector('.track-btn');
                     if (trackBtn) trackBtn.style.display = '';
 
                     const highlightedCount = highlightedDances.length;
