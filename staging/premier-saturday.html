@@ -87,15 +87,7 @@
             padding: 8px 16px 40px;
         }
 
-        .dance {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .dance.hidden {
+        .hidden {
             display: none;
         }
 
@@ -145,16 +137,19 @@
             touch-action: pan-y;
         }
 
+        .dance-row.hidden {
+            display: none;
+        }
+
         .dance-actions {
             position: absolute;
             top: 0;
             right: 0;
             bottom: 0;
-            width: 80px;
+            width: 72px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #1a1a1a;
             z-index: 1;
         }
 
@@ -164,10 +159,17 @@
             border: none;
             background: #254EF0;
             color: white;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
+            font-size: 24px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s;
+        }
+
+        .highlight-btn.is-highlighted {
+            background: #dc2626;
         }
 
         .dance {
@@ -178,17 +180,23 @@
             padding: 14px 16px;
             background: #0a0a0a;
             z-index: 2;
-            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            border: 2px solid transparent;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-left: 3px solid transparent;
         }
 
         .dance.highlighted {
-            border-color: #254EF0;
-            background: rgba(37, 78, 240, 0.05);
+            border-left-color: #254EF0;
+            background: rgba(37, 78, 240, 0.06);
+        }
+
+        .dance.highlighted .title::after {
+            content: ' ★';
+            color: #254EF0;
+            font-size: 11px;
         }
 
         .dance.swiped {
-            transform: translateX(-80px);
+            transform: translateX(-72px);
         }
     </style>
 </head>
@@ -208,7 +216,7 @@
     <div class="list" id="list">
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">440</span>
                 <div class="info">
@@ -219,7 +227,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">444</span>
                 <div class="info">
@@ -230,7 +238,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">446</span>
                 <div class="info">
@@ -241,7 +249,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">448</span>
                 <div class="info">
@@ -252,7 +260,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">450</span>
                 <div class="info">
@@ -263,7 +271,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">454</span>
                 <div class="info">
@@ -274,7 +282,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">456</span>
                 <div class="info">
@@ -285,7 +293,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="senior"><span class="num">457</span>
                 <div class="info">
@@ -296,7 +304,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">462</span>
                 <div class="info">
@@ -307,7 +315,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">463</span>
                 <div class="info">
@@ -318,7 +326,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="senior"><span class="num">466</span>
                 <div class="info">
@@ -329,7 +337,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">468</span>
                 <div class="info">
@@ -340,7 +348,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">470</span>
                 <div class="info">
@@ -351,7 +359,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">471</span>
                 <div class="info">
@@ -362,7 +370,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">472</span>
                 <div class="info">
@@ -373,7 +381,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">474</span>
                 <div class="info">
@@ -384,7 +392,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">475</span>
                 <div class="info">
@@ -395,7 +403,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">479</span>
                 <div class="info">
@@ -406,7 +414,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">480</span>
                 <div class="info">
@@ -417,7 +425,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">481</span>
                 <div class="info">
@@ -428,7 +436,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">483</span>
                 <div class="info">
@@ -439,7 +447,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">484</span>
                 <div class="info">
@@ -450,7 +458,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">488</span>
                 <div class="info">
@@ -461,7 +469,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">491</span>
                 <div class="info">
@@ -472,7 +480,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">499</span>
                 <div class="info">
@@ -483,7 +491,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">514</span>
                 <div class="info">
@@ -494,7 +502,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">515</span>
                 <div class="info">
@@ -505,7 +513,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">521</span>
                 <div class="info">
@@ -516,7 +524,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">522</span>
                 <div class="info">
@@ -527,7 +535,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">523</span>
                 <div class="info">
@@ -538,7 +546,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">527</span>
                 <div class="info">
@@ -549,7 +557,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">529</span>
                 <div class="info">
@@ -560,7 +568,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">530</span>
                 <div class="info">
@@ -571,7 +579,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">531</span>
                 <div class="info">
@@ -582,7 +590,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="senior"><span class="num">537</span>
                 <div class="info">
@@ -593,7 +601,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">538</span>
                 <div class="info">
@@ -604,7 +612,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">539</span>
                 <div class="info">
@@ -615,7 +623,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">543</span>
                 <div class="info">
@@ -626,7 +634,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">545</span>
                 <div class="info">
@@ -637,7 +645,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">549</span>
                 <div class="info">
@@ -648,7 +656,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">552</span>
                 <div class="info">
@@ -659,7 +667,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">553</span>
                 <div class="info">
@@ -670,7 +678,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">559</span>
                 <div class="info">
@@ -681,7 +689,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="teen"><span class="num">561</span>
                 <div class="info">
@@ -692,7 +700,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="senior"><span class="num">564</span>
                 <div class="info">
@@ -703,7 +711,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">567</span>
                 <div class="info">
@@ -714,7 +722,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="senior"><span class="num">569</span>
                 <div class="info">
@@ -725,7 +733,7 @@
         </div>
         <div class="dance-row">
             <div class="dance-actions">
-                <button class="highlight-btn">Highlight</button>
+                <button class="highlight-btn">☆</button>
             </div>
             <div class="dance" data-age="junior"><span class="num">573</span>
                 <div class="info">
@@ -765,7 +773,8 @@
         const highlightedDances = JSON.parse(localStorage.getItem('highlightedDances') || '[]');
 
         function updateHighlightButton(btn, isHighlighted) {
-            btn.textContent = isHighlighted ? 'Unhighlight' : 'Highlight';
+            btn.textContent = isHighlighted ? '★' : '☆';
+            btn.classList.toggle('is-highlighted', isHighlighted);
         }
 
         // Apply saved highlights on load
@@ -805,9 +814,11 @@
 
                 updateHighlightButton(highlightBtn, isHighlighted);
 
-                // Close the swipe
-                dance.classList.remove('swiped');
-                currentSwipedRow = null;
+                // Auto-close the swipe after a brief moment so user sees the state change
+                setTimeout(() => {
+                    dance.classList.remove('swiped');
+                    currentSwipedRow = null;
+                }, 200);
             });
         });
 
