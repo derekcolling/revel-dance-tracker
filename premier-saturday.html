@@ -245,14 +245,18 @@
         /* Highlighted states */
         .dance.highlighted {
             border-left-color: #254EF0;
-            background: rgba(37, 78, 240, 0.08);
+            background: rgba(37, 78, 240, 0.12);
             border-left-width: 4px;
         }
 
         .dance.highlighted .num {
-            background: rgba(37, 78, 240, 0.15);
-            border-color: #4a6ff5;
-            color: #6b8aff;
+            background: #254EF0;
+            border-color: #254EF0;
+            color: #fff;
+        }
+
+        .dance.highlighted .title {
+            color: #fff;
         }
 
         .dance.highlighted.soon-1-2 {
@@ -523,7 +527,8 @@
         <nav>
             <button class="day-tab active" data-day="Saturday">Saturday</button>
             <button class="day-tab" data-day="Sunday">Sunday</button>
-            <button class="premier-toggle" id="premierToggle">Premier Only Dances</button>
+            <button class="premier-toggle" id="trackedToggle">Tracked</button>
+            <button class="premier-toggle" id="premierToggle">Premier Only</button>
         </nav>
 
         <!-- Search -->
@@ -561,6 +566,7 @@
         let highlightedDances = JSON.parse(localStorage.getItem('highlightedDances') || '[]');
         let activeDay = 'Saturday';
         let premierOnly = false;
+        let trackedOnly = false;
         let searchQuery = '';
         let currentRowObserver = null;
 
@@ -573,6 +579,7 @@
         const liveStreamFrame = document.getElementById('liveStreamFrame');
         const liveChevron = document.getElementById('liveChevron');
         const premierToggle = document.getElementById('premierToggle');
+        const trackedToggle = document.getElementById('trackedToggle');
         const searchInput = document.getElementById('searchInput');
         const searchClear = document.getElementById('searchClear');
         const adminBar = document.getElementById('adminBar');
@@ -613,6 +620,7 @@
                 const dance = getDance(key);
                 if (!dance || dance.day !== activeDay) continue;
                 if (premierOnly && !dance.studio.toLowerCase().includes('premier dance')) continue;
+                if (trackedOnly && !highlightedDances.includes(key)) continue;
                 if (searchQuery) {
                     const q = searchQuery;
                     const haystack = `${key} ${dance.routine_title} ${dance.studio} ${dance.category || ''}`.toLowerCase();
@@ -911,6 +919,11 @@
             premierToggle.addEventListener('click', () => {
                 premierOnly = !premierOnly;
                 premierToggle.classList.toggle('active', premierOnly);
+                renderList();
+            });
+            trackedToggle.addEventListener('click', () => {
+                trackedOnly = !trackedOnly;
+                trackedToggle.classList.toggle('active', trackedOnly);
                 renderList();
             });
         }
