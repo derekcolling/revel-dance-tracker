@@ -1090,6 +1090,26 @@
 
         init();
     </script>
+
+    <script>
+        // Auto-refresh: polls version.json every 60s, reloads if version changes
+        (function() {
+            let currentVersion = null;
+            async function checkVersion() {
+                try {
+                    const res = await fetch('version.json?t=' + Date.now());
+                    const data = await res.json();
+                    if (currentVersion === null) {
+                        currentVersion = data.v;
+                    } else if (data.v !== currentVersion) {
+                        window.location.reload();
+                    }
+                } catch (e) {}
+            }
+            checkVersion();
+            setInterval(checkVersion, 60000);
+        })();
+    </script>
 </body>
 
 </html>
