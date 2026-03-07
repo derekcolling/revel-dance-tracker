@@ -348,14 +348,6 @@
             align-self: center;
         }
 
-        .track-btn.tracked {
-            padding: 4px 8px;
-            border: none;
-            background: none;
-            color: #555;
-            font-size: 18px;
-            font-weight: 400;
-        }
 
         .pre-start-msg {
             text-align: center;
@@ -710,8 +702,9 @@
             info.appendChild(currentLabel);
 
             const trackBtn = document.createElement('button');
-            trackBtn.className = 'track-btn' + (isHighlighted ? ' tracked' : '');
-            trackBtn.textContent = isHighlighted ? '✕' : 'Track';
+            trackBtn.className = 'track-btn';
+            trackBtn.textContent = 'Track';
+            if (isHighlighted) trackBtn.style.display = 'none';
 
             danceEl.appendChild(num);
             danceEl.appendChild(info);
@@ -719,20 +712,14 @@
 
             row.appendChild(danceEl);
 
-            // Track toggle
+            // Track button — adds tracking
             trackBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const isNowHighlighted = danceEl.classList.toggle('highlighted');
-                if (isNowHighlighted) {
-                    if (!highlightedDances.includes(key)) highlightedDances.push(key);
-                } else {
-                    highlightedDances = highlightedDances.filter(id => id !== key);
-                }
+                if (!highlightedDances.includes(key)) highlightedDances.push(key);
                 localStorage.setItem('highlightedDances', JSON.stringify(highlightedDances));
-                trackBtn.textContent = isNowHighlighted ? '✕' : 'Track';
-                trackBtn.classList.toggle('tracked', isNowHighlighted);
+                danceEl.classList.add('highlighted');
+                trackBtn.style.display = 'none';
 
-                // Update count and badges
                 const highlightedCount = highlightedDances.length;
                 const totalVisible = listEl.querySelectorAll('.dance-row:not(.hidden)').length;
                 countEl.innerHTML = `${totalVisible} dances` +
@@ -841,6 +828,22 @@
                     badge.className = 'proximity-badge';
                     badge.textContent = `${away} away`;
                 }
+                badge.style.cursor = 'pointer';
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    highlightedDances = highlightedDances.filter(id => id !== key);
+                    localStorage.setItem('highlightedDances', JSON.stringify(highlightedDances));
+                    danceEl.classList.remove('highlighted', 'soon-1-2', 'soon-3-5');
+                    badge.remove();
+                    // Show track button again
+                    const trackBtn = danceEl.querySelector('.track-btn');
+                    if (trackBtn) trackBtn.style.display = '';
+
+                    const highlightedCount = highlightedDances.length;
+                    const totalVisible = listEl.querySelectorAll('.dance-row:not(.hidden)').length;
+                    countEl.innerHTML = `${totalVisible} dances` +
+                        (highlightedCount > 0 ? ` · <span>${highlightedCount} saved</span>` : '');
+                });
                 danceEl.appendChild(badge);
             });
         }
