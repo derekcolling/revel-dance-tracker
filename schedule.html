@@ -39,8 +39,8 @@
 
         .header-top {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
             margin-bottom: 10px;
         }
 
@@ -48,94 +48,11 @@
             height: 28px;
         }
 
-        /* On Stage Banner */
-        .on-stage {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            background: rgba(37, 78, 240, 0.08);
-            border: 1px solid rgba(37, 78, 240, 0.2);
-            border-radius: 12px;
-            margin-bottom: 10px;
-        }
-
-        .on-stage-label {
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: #254EF0;
-            white-space: nowrap;
-        }
-
-        .on-stage-number {
-            font-size: 28px;
-            font-weight: 800;
-            color: #254EF0;
-            line-height: 1;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .on-stage-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .on-stage-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #f0f0f0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .on-stage-studio {
+        .event-info {
             font-size: 11px;
-            color: #888;
-        }
-
-        .on-stage-waiting {
-            font-size: 13px;
-            color: #555;
-        }
-
-        .on-stage-start-time {
-            font-size: 11px;
-            color: #888;
-            margin-top: 2px;
-        }
-
-        /* Out-of-order / inserted dance */
-        .on-stage.out-of-order {
-            background: rgba(250, 204, 21, 0.08);
-            border-color: rgba(250, 204, 21, 0.3);
-        }
-
-        .on-stage.out-of-order .on-stage-label {
-            color: #facc15;
-        }
-
-        .on-stage.out-of-order .on-stage-number {
-            color: #facc15;
-        }
-
-        .schedule-change-tag {
-            display: none;
-            font-size: 9px;
-            font-weight: 800;
+            color: #666;
+            margin-top: 4px;
             letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: #facc15;
-            background: rgba(250, 204, 21, 0.12);
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-top: 2px;
-        }
-
-        .on-stage.out-of-order .schedule-change-tag {
-            display: inline-block;
         }
 
         /* Live Stream Toggle */
@@ -490,21 +407,7 @@
     <header>
         <div class="header-top">
             <img src="./62ace49c152a984444341217_Rev Nav Logo.svg" alt="Revel" class="logo">
-        </div>
-
-        <!-- On Stage Display -->
-        <div class="on-stage" id="onStage">
-            <div>
-                <div class="on-stage-label">On Stage</div>
-                <div class="on-stage-number" id="onStageNumber">...</div>
-            </div>
-            <div class="on-stage-info">
-                <div class="on-stage-waiting" id="onStageWaiting">Waiting for update</div>
-                <div class="on-stage-start-time" id="onStageStartTime"></div>
-                <div class="on-stage-title" id="onStageTitle" style="display:none"></div>
-                <div class="on-stage-studio" id="onStageStudio" style="display:none"></div>
-                <div class="schedule-change-tag" id="scheduleChangeTag">Schedule change</div>
-            </div>
+            <span class="event-info">Tulsa, OK · Mar 6–8</span>
         </div>
 
         <!-- Live Stream -->
@@ -552,13 +455,7 @@
         // --- DOM refs ---
         const listEl = document.getElementById('list');
         const countEl = document.getElementById('danceCount');
-        const onStageNumber = document.getElementById('onStageNumber');
-        const onStageTitle = document.getElementById('onStageTitle');
-        const onStageStudio = document.getElementById('onStageStudio');
-        const onStageWaiting = document.getElementById('onStageWaiting');
         const jumpBtn = document.getElementById('jumpToCurrent');
-        const onStageEl = document.getElementById('onStage');
-        const onStageStartTime = document.getElementById('onStageStartTime');
         const liveToggleBtn = document.getElementById('liveToggleBtn');
         const liveStreamContainer = document.getElementById('liveStreamContainer');
         const liveStreamFrame = document.getElementById('liveStreamFrame');
@@ -578,24 +475,11 @@
             }
 
             renderList();
-            showStartTime();
             setupFirebaseListener();
             setupLiveStream();
             setupDayTabs();
             setupPremierToggle();
             setupJumpButton();
-        }
-
-        // --- Show start time when competition hasn't started ---
-        function showStartTime() {
-            const orderedKeys = getOrderedKeys();
-            for (const key of orderedKeys) {
-                const dance = getDance(key);
-                if (dance && dance.day === activeDay) {
-                    onStageStartTime.textContent = `${activeDay} starts at ${dance.time}`;
-                    break;
-                }
-            }
         }
 
         // --- Render dance list ---
@@ -778,28 +662,8 @@
             previousDanceKey = currentDanceKey;
             currentDanceKey = key;
 
-            // Update header
-            onStageNumber.textContent = key;
-            const data = getDance(key);
-            if (data) {
-                onStageTitle.textContent = data.routine_title;
-                onStageStudio.textContent = data.studio;
-                onStageTitle.style.display = '';
-                onStageStudio.style.display = '';
-                onStageWaiting.style.display = 'none';
-                onStageStartTime.style.display = 'none';
-            } else {
-                // Dance not in schedule — show as unscheduled
-                onStageTitle.textContent = 'Not in schedule';
-                onStageTitle.style.display = '';
-                onStageStudio.textContent = '';
-                onStageWaiting.style.display = 'none';
-                onStageStartTime.style.display = 'none';
-                isOutOfOrder = true;
-            }
-
-            // Toggle out-of-order styling on header
-            onStageEl.classList.toggle('out-of-order', isOutOfOrder);
+            // Dance not in schedule at all — treat as out-of-order
+            if (!getDance(key)) isOutOfOrder = true;
 
             // Re-render to hide past dances
             renderList();
@@ -919,7 +783,6 @@
                 tab.addEventListener('click', () => {
                     activeDay = tab.dataset.day;
                     dayTabs.forEach(t => t.classList.toggle('active', t.dataset.day === activeDay));
-                    if (!currentDanceKey) showStartTime();
                     renderList();
                 });
             });
