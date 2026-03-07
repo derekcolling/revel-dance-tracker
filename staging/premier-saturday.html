@@ -171,9 +171,6 @@
             transition: background 0.2s;
         }
 
-        .highlight-btn.is-highlighted {
-            background: #333;
-        }
 
         .dance {
             position: relative;
@@ -769,18 +766,11 @@
 
         const highlightedDances = JSON.parse(localStorage.getItem('highlightedDances') || '[]');
 
-        function updateHighlightButton(btn, isHighlighted) {
-            btn.textContent = isHighlighted ? 'Undo' : 'Save';
-            btn.classList.toggle('is-highlighted', isHighlighted);
-        }
-
         // Apply saved highlights on load
         dances.forEach(dance => {
             const num = dance.querySelector('.num').textContent;
             if (highlightedDances.includes(num)) {
                 dance.classList.add('highlighted');
-                const btn = dance.closest('.dance-row').querySelector('.highlight-btn');
-                updateHighlightButton(btn, true);
             }
         });
 
@@ -809,12 +799,9 @@
                 }
                 localStorage.setItem('highlightedDances', JSON.stringify(saved));
 
-                // Close the swipe first, then update button after it's hidden
+                // Close the swipe immediately
                 dance.classList.remove('swiped');
                 currentSwipedRow = null;
-                setTimeout(() => {
-                    updateHighlightButton(highlightBtn, isHighlighted);
-                }, 300);
             });
         });
 
