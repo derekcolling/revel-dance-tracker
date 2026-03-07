@@ -7,11 +7,11 @@ body {
 }
 
 .progress-ring-gradient {
-  background: rgba(0, 229, 255, 0.15);
+  background: rgba(37, 78, 240, 0.15);
 }
 
 .card-glow-blue {
-  box-shadow: 0 0 15px rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 15px rgba(37, 78, 240, 0.1);
 }
 
 .card-glow-orange {
@@ -37,12 +37,14 @@ body {
 }
 
 /* Smooth transitions for tracked dance cards */
-#trackedDancesContainer > div {
+#trackedDancesContainer>div {
   transition: all 0.2s ease;
 }
 
 /* Prevent iOS zoom on input focus */
-input, select, textarea {
+input,
+select,
+textarea {
   font-size: 16px !important;
 }
 
@@ -62,9 +64,19 @@ input.border-red-500 {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 /* Disabled button state */

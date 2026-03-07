@@ -27,10 +27,18 @@
             background: rgba(10, 10, 10, 0.92);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 16px 20px 12px;
+            padding: 12px 20px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             z-index: 10;
             text-align: center;
+        }
+
+        .logo {
+            height: 32px;
+            margin-bottom: 8px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         header h1 {
@@ -40,7 +48,7 @@
         }
 
         header h1 span {
-            color: #06b6d4;
+            color: #254EF0;
         }
 
         header p {
@@ -70,9 +78,9 @@
         }
 
         .pill.active {
-            background: #06b6d4;
-            color: #0a0a0a;
-            border-color: #06b6d4;
+            background: #254EF0;
+            color: #ffffff;
+            border-color: #254EF0;
         }
 
         .list {
@@ -94,7 +102,7 @@
         .num {
             font-size: 26px;
             font-weight: 800;
-            color: #06b6d4;
+            color: #254EF0;
             min-width: 42px;
             text-align: right;
             font-variant-numeric: tabular-nums;
@@ -131,6 +139,7 @@
 
 <body>
     <header>
+        <img src="logo.png" alt="Revel" class="logo">
         <h1><span>Premier Dance</span> — Saturday</h1>
         <p id="count">48 dances · Revel 2026</p>
         <div class="filters">
