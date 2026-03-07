@@ -137,7 +137,6 @@
         }
 
         .premier-toggle {
-            margin-left: auto;
             padding: 6px 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
@@ -157,15 +156,38 @@
             border-color: rgba(37, 78, 240, 0.4);
         }
 
-        /* Search */
+        /* Search icon button */
+        .search-btn {
+            padding: 6px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            margin-left: auto;
+        }
+
+        .search-btn.active {
+            background: rgba(37, 78, 240, 0.15);
+            color: #254EF0;
+            border-color: rgba(37, 78, 240, 0.4);
+        }
+
+        /* Search input (expandable) */
         .search-wrap {
+            display: none;
             position: relative;
             margin-bottom: 10px;
         }
 
+        .search-wrap.visible {
+            display: block;
+        }
+
         .search-wrap input {
             width: 100%;
-            padding: 8px 14px 8px 34px;
+            padding: 8px 34px 8px 14px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
@@ -184,15 +206,6 @@
             border-color: rgba(37, 78, 240, 0.5);
         }
 
-        .search-icon {
-            position: absolute;
-            left: 11px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #555;
-            pointer-events: none;
-        }
-
         .search-clear {
             position: absolute;
             right: 8px;
@@ -206,6 +219,41 @@
             padding: 4px 6px;
             display: none;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Category filters */
+        .category-filters {
+            display: flex;
+            gap: 6px;
+            padding: 0 0 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .category-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-btn {
+            padding: 5px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            background: transparent;
+            color: #888;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+            flex-shrink: 0;
+        }
+
+        .cat-btn.active {
+            background: rgba(37, 78, 240, 0.15);
+            color: #254EF0;
+            border-color: rgba(37, 78, 240, 0.4);
         }
 
         .dance-count {
@@ -526,16 +574,26 @@
             <button class="day-tab" data-day="Sunday">Sunday</button>
             <button class="premier-toggle" id="trackedToggle">Tracked</button>
             <button class="premier-toggle" id="premierToggle">Premier</button>
+            <button class="search-btn" id="searchBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
         </nav>
 
-        <!-- Search -->
-        <div class="search-wrap">
-            <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8" stroke-width="2"/>
-                <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
-            </svg>
+        <!-- Search (expandable) -->
+        <div class="search-wrap" id="searchWrap">
             <input type="text" id="searchInput" placeholder="Search dances, studios..." autocomplete="off">
             <button class="search-clear" id="searchClear">✕</button>
+        </div>
+
+        <!-- Category filters -->
+        <div class="category-filters">
+            <button class="cat-btn" data-cat="Mini">Mini</button>
+            <button class="cat-btn" data-cat="Junior">Junior</button>
+            <button class="cat-btn" data-cat="Teen">Teen</button>
+            <button class="cat-btn" data-cat="Senior">Senior</button>
         </div>
     </header>
 
@@ -565,6 +623,7 @@
         let premierOnly = false;
         let trackedOnly = false;
         let searchQuery = '';
+        let activeCategory = null;
         let currentRowObserver = null;
 
         // --- DOM refs ---
@@ -577,8 +636,11 @@
         const liveChevron = document.getElementById('liveChevron');
         const premierToggle = document.getElementById('premierToggle');
         const trackedToggle = document.getElementById('trackedToggle');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchWrap = document.getElementById('searchWrap');
         const searchInput = document.getElementById('searchInput');
         const searchClear = document.getElementById('searchClear');
+        const catBtns = document.querySelectorAll('.cat-btn');
         const adminBar = document.getElementById('adminBar');
         const adminDanceInput = document.getElementById('adminDanceInput');
         const adminSetBtn = document.getElementById('adminSetBtn');
@@ -618,6 +680,7 @@
                 if (!dance || dance.day !== activeDay) continue;
                 if (premierOnly && !dance.studio.toLowerCase().includes('premier dance')) continue;
                 if (trackedOnly && !highlightedDances.includes(key)) continue;
+                if (activeCategory && !(dance.category || '').startsWith(activeCategory)) continue;
                 if (searchQuery) {
                     const q = searchQuery;
                     const haystack = `${key} ${dance.routine_title} ${dance.studio} ${dance.category || ''}`.toLowerCase();
@@ -936,6 +999,18 @@
 
         // --- Search ---
         function setupSearch() {
+            searchBtn.addEventListener('click', () => {
+                const isOpen = searchWrap.classList.toggle('visible');
+                searchBtn.classList.toggle('active', isOpen);
+                if (isOpen) {
+                    searchInput.focus();
+                } else {
+                    searchInput.value = '';
+                    searchQuery = '';
+                    searchClear.style.display = 'none';
+                    renderList();
+                }
+            });
             searchInput.addEventListener('input', () => {
                 searchQuery = searchInput.value.trim().toLowerCase();
                 searchClear.style.display = searchQuery ? 'block' : 'none';
@@ -946,6 +1021,22 @@
                 searchQuery = '';
                 searchClear.style.display = 'none';
                 renderList();
+            });
+
+            // Category filters
+            catBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cat = btn.dataset.cat;
+                    if (activeCategory === cat) {
+                        activeCategory = null;
+                        btn.classList.remove('active');
+                    } else {
+                        catBtns.forEach(b => b.classList.remove('active'));
+                        activeCategory = cat;
+                        btn.classList.add('active');
+                    }
+                    renderList();
+                });
             });
         }
 
