@@ -461,6 +461,60 @@
             transform: translateX(-50%) translateY(0);
         }
 
+        /* Admin bar */
+        .admin-bar {
+            display: none;
+            padding: 10px 16px;
+            background: rgba(37, 78, 240, 0.1);
+            border-bottom: 1px solid rgba(37, 78, 240, 0.3);
+            gap: 8px;
+            align-items: center;
+        }
+
+        .admin-bar.visible {
+            display: flex;
+        }
+
+        .admin-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(37, 78, 240, 0.4);
+            border-radius: 8px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            outline: none;
+            text-align: center;
+        }
+
+        .admin-bar input::placeholder {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .admin-bar button {
+            padding: 8px 16px;
+            background: #254EF0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .admin-bar .admin-label {
+            font-size: 10px;
+            color: #254EF0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         /* Loading state */
         .loading {
             text-align: center;
@@ -509,6 +563,12 @@
         </div>
     </header>
 
+    <div class="admin-bar" id="adminBar">
+        <span class="admin-label">Admin</span>
+        <input type="text" id="adminDanceInput" placeholder="Dance #" inputmode="text">
+        <button id="adminSetBtn">Set</button>
+    </div>
+
     <div class="dance-count" id="danceCount" style="padding: 8px 20px 4px"></div>
     <div class="list" id="list">
         <div class="loading">Loading schedule...</div>
@@ -517,7 +577,7 @@
     <button id="jumpToCurrent">Jump to current</button>
 
     <script type="module">
-        import { database, ref, onValue } from './js/firebase-config.js';
+        import { database, ref, onValue, set } from './js/firebase-config.js';
         import { loadSchedule, getDance, dancesAway, getOrderedKeys, getPosition } from './js/schedule.js';
 
         // --- State ---
@@ -542,6 +602,10 @@
         const premierToggle = document.getElementById('premierToggle');
         const searchInput = document.getElementById('searchInput');
         const searchClear = document.getElementById('searchClear');
+        const adminBar = document.getElementById('adminBar');
+        const adminDanceInput = document.getElementById('adminDanceInput');
+        const adminSetBtn = document.getElementById('adminSetBtn');
+        const logo = document.querySelector('.logo');
         const dayTabs = document.querySelectorAll('.day-tab');
 
         // --- Init ---
@@ -561,6 +625,7 @@
             setupDayTabs();
             setupPremierToggle();
             setupSearch();
+            setupAdmin();
             setupJumpButton();
         }
 
@@ -912,6 +977,41 @@
                 searchQuery = '';
                 searchClear.style.display = 'none';
                 renderList();
+            });
+        }
+
+        // --- Admin override (long-press logo to toggle) ---
+        function setupAdmin() {
+            let pressTimer = null;
+            logo.addEventListener('touchstart', () => {
+                pressTimer = setTimeout(() => {
+                    adminBar.classList.toggle('visible');
+                }, 1000);
+            }, { passive: true });
+            logo.addEventListener('touchend', () => clearTimeout(pressTimer), { passive: true });
+            logo.addEventListener('touchcancel', () => clearTimeout(pressTimer), { passive: true });
+            // Desktop: long click
+            logo.addEventListener('mousedown', () => {
+                pressTimer = setTimeout(() => {
+                    adminBar.classList.toggle('visible');
+                }, 1000);
+            });
+            logo.addEventListener('mouseup', () => clearTimeout(pressTimer));
+            logo.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+            adminSetBtn.addEventListener('click', () => {
+                const val = adminDanceInput.value.trim();
+                if (!val) return;
+                if (database) {
+                    const danceRef = ref(database, 'competitions/revel2026/currentDance');
+                    set(danceRef, val);
+                }
+                localStorage.setItem('danceTrack_currentDance', val);
+                adminDanceInput.value = '';
+            });
+
+            adminDanceInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') adminSetBtn.click();
             });
         }
 
