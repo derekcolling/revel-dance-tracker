@@ -859,7 +859,12 @@
 
         // --- Live stream toggle ---
         function setupLiveStream() {
-            let liveOpen = false;
+            let liveOpen = true;
+            // Open by default
+            liveStreamFrame.src = 'https://player.restream.io/?token=2ff6dc8313dd4a7a908680e9e66bfd4c';
+            liveStreamContainer.style.maxHeight = '300px';
+            liveChevron.style.transform = 'rotate(180deg)';
+
             liveToggleBtn.addEventListener('click', () => {
                 liveOpen = !liveOpen;
                 if (liveOpen) {
