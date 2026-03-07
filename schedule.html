@@ -290,17 +290,24 @@
         /* Highlighted states */
         .dance.highlighted {
             border-left-color: #254EF0;
-            background: rgba(37, 78, 240, 0.04);
+            background: rgba(37, 78, 240, 0.08);
+            border-left-width: 4px;
+        }
+
+        .dance.highlighted .num {
+            background: rgba(37, 78, 240, 0.15);
+            border-color: #4a6ff5;
+            color: #6b8aff;
         }
 
         .dance.highlighted.soon-1-2 {
             border-left-color: #FF4D00;
-            background: rgba(255, 77, 0, 0.06);
+            background: rgba(255, 77, 0, 0.08);
         }
 
         .dance.highlighted.soon-3-5 {
             border-left-color: #39FF14;
-            background: rgba(57, 255, 20, 0.04);
+            background: rgba(57, 255, 20, 0.06);
         }
 
         /* On-stage row in the list */
@@ -439,29 +446,33 @@
 
         /* Proximity badge */
         .proximity-badge {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 800;
-            padding: 3px 8px;
-            border-radius: 10px;
+            padding: 5px 10px;
+            border-radius: 8px;
             white-space: nowrap;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.08);
+            color: #888;
         }
 
         .proximity-badge.now {
             background: #254EF0;
             color: #fff;
+            font-size: 14px;
             animation: pulse-badge 2s ease-in-out infinite;
         }
 
         .proximity-badge.urgent {
-            background: rgba(255, 77, 0, 0.2);
+            background: rgba(255, 77, 0, 0.25);
             color: #FF4D00;
+            font-size: 14px;
         }
 
         .proximity-badge.soon {
-            background: rgba(57, 255, 20, 0.15);
+            background: rgba(57, 255, 20, 0.18);
             color: #39FF14;
         }
 
