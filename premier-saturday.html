@@ -469,31 +469,19 @@
         .next-up-bar {
             display: none;
             align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            background: rgba(37, 78, 240, 0.08);
-            border-bottom: 1px solid rgba(37, 78, 240, 0.2);
+            gap: 12px;
+            padding: 12px 20px;
+            background: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 9;
         }
 
         .next-up-bar.visible {
             display: flex;
-        }
-
-        .next-up-count {
-            font-size: 28px;
-            font-weight: 800;
-            color: #254EF0;
-            line-height: 1;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        .next-up-count.urgent {
-            color: #FF4D00;
-        }
-
-        .next-up-count.soon {
-            color: #39FF14;
         }
 
         .next-up-info {
@@ -502,25 +490,52 @@
         }
 
         .next-up-label {
-            font-size: 10px;
-            color: #666;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 13px;
+            color: #999;
+            font-weight: 600;
+        }
+
+        .next-up-label strong {
+            color: #254EF0;
+            font-weight: 800;
+        }
+
+        .next-up-label strong.urgent {
+            color: #FF4D00;
+        }
+
+        .next-up-label strong.soon {
+            color: #39FF14;
         }
 
         .next-up-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: #fff;
+            margin-top: 2px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .next-up-meta {
-            font-size: 11px;
-            color: #888;
+        .next-up-time {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .next-up-time-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .next-up-time-label {
+            font-size: 10px;
+            color: #666;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* Admin bar */
@@ -635,11 +650,13 @@
     </header>
 
     <div class="next-up-bar" id="nextUpBar">
-        <div class="next-up-count" id="nextUpCount">--</div>
         <div class="next-up-info">
-            <div class="next-up-label" id="nextUpLabel">Next saved dance</div>
-            <div class="next-up-title" id="nextUpTitle">--</div>
-            <div class="next-up-meta" id="nextUpMeta"></div>
+            <div class="next-up-label" id="nextUpLabel"></div>
+            <div class="next-up-title" id="nextUpTitle"></div>
+        </div>
+        <div class="next-up-time">
+            <div class="next-up-time-value" id="nextUpTime"></div>
+            <div class="next-up-time-label" id="nextUpTimeLabel"></div>
         </div>
     </div>
 
@@ -677,10 +694,10 @@
         const countEl = document.getElementById('danceCount');
         const jumpBtn = document.getElementById('jumpToCurrent');
         const nextUpBar = document.getElementById('nextUpBar');
-        const nextUpCount = document.getElementById('nextUpCount');
         const nextUpLabel = document.getElementById('nextUpLabel');
         const nextUpTitle = document.getElementById('nextUpTitle');
-        const nextUpMeta = document.getElementById('nextUpMeta');
+        const nextUpTime = document.getElementById('nextUpTime');
+        const nextUpTimeLabel = document.getElementById('nextUpTimeLabel');
         const liveToggleBtn = document.getElementById('liveToggleBtn');
         const liveStreamContainer = document.getElementById('liveStreamContainer');
         const liveStreamFrame = document.getElementById('liveStreamFrame');
@@ -1003,29 +1020,24 @@
             }
 
             nextUpBar.classList.add('visible');
+            nextUpTitle.textContent = `#${closest.key} — ${closest.dance.routine_title}`;
 
             if (closest.away === 0) {
-                nextUpCount.textContent = 'ON';
-                nextUpCount.className = 'next-up-count urgent';
-                nextUpLabel.textContent = 'On stage now';
-                nextUpMeta.textContent = '';
+                nextUpLabel.innerHTML = 'Your dance is <strong class="urgent">on stage now!</strong>';
+                nextUpTime.textContent = '';
+                nextUpTimeLabel.textContent = '';
             } else {
-                nextUpCount.textContent = closest.away;
-                nextUpLabel.textContent = closest.away === 1 ? 'dance away' : 'dances away';
-                if (closest.away <= 2) {
-                    nextUpCount.className = 'next-up-count urgent';
-                } else if (closest.away <= 5) {
-                    nextUpCount.className = 'next-up-count soon';
-                } else {
-                    nextUpCount.className = 'next-up-count';
-                }
-                // Estimated wait (~2.5 min per dance)
+                let colorClass = '';
+                if (closest.away <= 2) colorClass = 'urgent';
+                else if (closest.away <= 5) colorClass = 'soon';
+
+                nextUpLabel.innerHTML = `<strong class="${colorClass}">${closest.away}</strong> ${closest.away === 1 ? 'dance' : 'dances'} until yours`;
+
                 const minWait = Math.round(closest.away * 2);
                 const maxWait = Math.round(closest.away * 3);
-                nextUpMeta.textContent = `~${minWait}-${maxWait} min`;
+                nextUpTime.textContent = `~${minWait}-${maxWait}`;
+                nextUpTimeLabel.textContent = 'min';
             }
-
-            nextUpTitle.textContent = `#${closest.key} — ${closest.dance.routine_title}`;
         }
 
         // --- Jump to Current button ---
