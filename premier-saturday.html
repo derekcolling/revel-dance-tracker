@@ -468,74 +468,72 @@
         /* Next Up bar */
         .next-up-bar {
             display: none;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            background: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px 20px;
+            background: #1a1520;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             position: sticky;
             top: 0;
             z-index: 9;
         }
 
         .next-up-bar.visible {
-            display: flex;
+            display: block;
         }
 
-        .next-up-info {
-            flex: 1;
-            min-width: 0;
+        .next-up-bar.urgent-state {
+            background: linear-gradient(135deg, rgba(255, 77, 0, 0.15) 0%, #1a1520 70%);
+            border-bottom-color: rgba(255, 77, 0, 0.2);
         }
 
-        .next-up-label {
-            font-size: 13px;
-            color: #999;
-            font-weight: 600;
+        .next-up-bar.soon-state {
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.08) 0%, #1a1520 70%);
+            border-bottom-color: rgba(57, 255, 20, 0.15);
         }
 
-        .next-up-label strong {
-            color: #254EF0;
+        .next-up-bar.onstage-state {
+            background: linear-gradient(135deg, rgba(255, 77, 0, 0.2) 0%, rgba(255, 77, 0, 0.06) 100%);
+            border-bottom-color: rgba(255, 77, 0, 0.3);
+            animation: onstage-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes onstage-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        .next-up-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .next-up-text strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .next-up-text .next-up-count {
             font-weight: 800;
+            color: #c084fc;
         }
 
-        .next-up-label strong.urgent {
+        .next-up-bar.urgent-state .next-up-count {
             color: #FF4D00;
         }
 
-        .next-up-label strong.soon {
+        .next-up-bar.soon-state .next-up-count {
             color: #39FF14;
         }
 
-        .next-up-title {
+        .next-up-bar.onstage-state .next-up-text {
+            color: #FF4D00;
+            font-weight: 700;
             font-size: 15px;
-            font-weight: 700;
+        }
+
+        .next-up-bar.onstage-state .next-up-text strong {
             color: #fff;
-            margin-top: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .next-up-time {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .next-up-time-value {
-            font-size: 22px;
-            font-weight: 800;
-            color: #fff;
-            line-height: 1;
-        }
-
-        .next-up-time-label {
-            font-size: 10px;
-            color: #666;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         /* Admin bar */
@@ -650,14 +648,7 @@
     </header>
 
     <div class="next-up-bar" id="nextUpBar">
-        <div class="next-up-info">
-            <div class="next-up-label" id="nextUpLabel"></div>
-            <div class="next-up-title" id="nextUpTitle"></div>
-        </div>
-        <div class="next-up-time">
-            <div class="next-up-time-value" id="nextUpTime"></div>
-            <div class="next-up-time-label" id="nextUpTimeLabel"></div>
-        </div>
+        <div class="next-up-text" id="nextUpText"></div>
     </div>
 
     <div class="admin-bar" id="adminBar">
@@ -694,10 +685,7 @@
         const countEl = document.getElementById('danceCount');
         const jumpBtn = document.getElementById('jumpToCurrent');
         const nextUpBar = document.getElementById('nextUpBar');
-        const nextUpLabel = document.getElementById('nextUpLabel');
-        const nextUpTitle = document.getElementById('nextUpTitle');
-        const nextUpTime = document.getElementById('nextUpTime');
-        const nextUpTimeLabel = document.getElementById('nextUpTimeLabel');
+        const nextUpText = document.getElementById('nextUpText');
         const liveToggleBtn = document.getElementById('liveToggleBtn');
         const liveStreamContainer = document.getElementById('liveStreamContainer');
         const liveStreamFrame = document.getElementById('liveStreamFrame');
@@ -1020,23 +1008,20 @@
             }
 
             nextUpBar.classList.add('visible');
-            nextUpTitle.textContent = `#${closest.key} — ${closest.dance.routine_title}`;
+            nextUpBar.classList.remove('urgent-state', 'soon-state', 'onstage-state');
+
+            const title = closest.dance.routine_title;
 
             if (closest.away === 0) {
-                nextUpLabel.innerHTML = 'Your dance is <strong class="urgent">on stage now!</strong>';
-                nextUpTime.textContent = '';
-                nextUpTimeLabel.textContent = '';
+                nextUpBar.classList.add('onstage-state');
+                nextUpText.innerHTML = `<strong>${title}</strong> is on stage now!`;
             } else {
-                let colorClass = '';
-                if (closest.away <= 2) colorClass = 'urgent';
-                else if (closest.away <= 5) colorClass = 'soon';
+                if (closest.away <= 2) nextUpBar.classList.add('urgent-state');
+                else if (closest.away <= 5) nextUpBar.classList.add('soon-state');
 
-                nextUpLabel.innerHTML = `<strong class="${colorClass}">${closest.away}</strong> ${closest.away === 1 ? 'dance' : 'dances'} until yours`;
-
-                const minWait = Math.round(closest.away * 2);
-                const maxWait = Math.round(closest.away * 3);
-                nextUpTime.textContent = `~${minWait}-${maxWait}`;
-                nextUpTimeLabel.textContent = 'min';
+                const mins = Math.round(closest.away * 2);
+                const danceWord = closest.away === 1 ? 'dance' : 'dances';
+                nextUpText.innerHTML = `<span class="next-up-count">${closest.away} ${danceWord}</span> until <strong>${title}</strong> · ~${mins} min`;
             }
         }
 
