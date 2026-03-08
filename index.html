@@ -914,13 +914,9 @@
                 if (away === null) return;
                 if (away < 0) return;
 
-                // Current dance: always show "On Stage" badge
+                // Current dance: hide track button
                 if (away === 0) {
-                    const badge = document.createElement('span');
-                    badge.className = 'proximity-badge now';
-                    badge.textContent = 'On Stage';
                     if (trackBtn) trackBtn.style.display = 'none';
-                    danceEl.appendChild(badge);
                     return;
                 }
 
