@@ -1,146 +1,1170 @@
 <!DOCTYPE html>
-<html lang="en" class="overflow-x-hidden">
+<html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Revel Dance Competition - Live Tracker</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Revel 2026 — Dance Schedule</title>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet" />
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Manrope', 'sans-serif'] },
-                    colors: {
-                        dark: '#121212',
-                        surface: '#1E1E1E',
-                        neonGreen: '#39FF14',
-                        electricBlue: '#254EF0',
-                        glowOrange: '#FF4D00'
-                    }
-                }
-            }
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-    </script>
-    <link href="css/styles.css" rel="stylesheet">
+
+        body {
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: #0a0a0a;
+            color: #e5e5e5;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 10, 10, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            z-index: 10;
+        }
+
+        .header-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            height: 28px;
+        }
+
+        .event-info {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Live Stream Toggle */
+        .live-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .live-chevron {
+            margin-left: auto;
+            transition: transform 0.3s;
+            color: #555;
+        }
+
+        .live-container {
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            max-height: 0;
+            margin-bottom: 10px;
+        }
+
+        .live-container iframe {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border: none;
+            border-radius: 12px;
+            background: #000;
+        }
+
+        /* Nav / Filters */
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 0 10px;
+            flex-wrap: wrap;
+        }
+
+        .my-dances-btn {
+            padding: 6px 14px;
+            border: 1px solid rgba(192, 132, 252, 0.4);
+            border-radius: 20px;
+            background: rgba(192, 132, 252, 0.1);
+            color: #c084fc;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .my-dances-btn.active {
+            background: rgba(192, 132, 252, 0.25);
+            color: #d8b4fe;
+            border-color: rgba(192, 132, 252, 0.6);
+        }
+
+        /* Search icon button */
+        .search-btn {
+            padding: 6px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            margin-left: auto;
+        }
+
+        .search-btn.active {
+            background: rgba(37, 78, 240, 0.15);
+            color: #254EF0;
+            border-color: rgba(37, 78, 240, 0.4);
+        }
+
+        /* Search input (expandable) */
+        .search-wrap {
+            display: none;
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .search-wrap.visible {
+            display: block;
+        }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 8px 34px 8px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .search-wrap input::placeholder {
+            color: #555;
+        }
+
+        .search-wrap input:focus {
+            border-color: rgba(37, 78, 240, 0.5);
+        }
+
+        .search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 6px;
+            display: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cat-btn {
+            padding: 5px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            background: transparent;
+            color: #888;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .cat-btn.active {
+            background: rgba(37, 78, 240, 0.15);
+            color: #254EF0;
+            border-color: rgba(37, 78, 240, 0.4);
+        }
+
+        .dance-count {
+            font-size: 11px;
+            color: #555;
+            padding: 0 0 0 4px;
+        }
+
+        .dance-count span {
+            color: #254EF0;
+        }
+
+        /* Dance List */
+        .list {
+            padding: 0 0 100px;
+        }
+
+        .dance-row {
+            background: #0a0a0a;
+        }
+
+        .dance-row.hidden {
+            display: none;
+        }
+
+        .dance {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 16px;
+            background: #0a0a0a;
+            border-left: 3px solid transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Highlighted states */
+        .dance.highlighted {
+            border-left-color: #254EF0;
+            background: rgba(37, 78, 240, 0.12);
+            border-left-width: 4px;
+        }
+
+        .dance.highlighted .num {
+            background: #254EF0;
+            border-color: #254EF0;
+            color: #fff;
+        }
+
+        .dance.highlighted .title {
+            color: #fff;
+        }
+
+        .dance.highlighted.soon-1-2 {
+            border-left-color: #FF4D00;
+            background: rgba(255, 77, 0, 0.08);
+        }
+
+        .dance.highlighted.soon-3-5 {
+            border-left-color: #39FF14;
+            background: rgba(57, 255, 20, 0.06);
+        }
+
+        /* On-stage row in the list */
+        .dance.current-dance {
+            background: rgba(37, 78, 240, 0.12);
+            border-left-color: #254EF0;
+        }
+
+        .dance.current-dance .num {
+            color: #fff;
+        }
+
+        .dance.current-dance .current-label {
+            display: inline-block;
+        }
+
+        /* Out-of-order row in the list */
+        .dance.current-dance.out-of-order-row {
+            background: rgba(250, 204, 21, 0.1);
+            border-left-color: #facc15;
+        }
+
+        .dance.current-dance.out-of-order-row .num {
+            color: #facc15;
+        }
+
+        .dance.current-dance.out-of-order-row .current-label {
+            color: #facc15;
+            background: rgba(250, 204, 21, 0.15);
+        }
+
+        .num {
+            font-size: 18px;
+            font-weight: 800;
+            color: #254EF0;
+            min-width: 38px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            border: 1px solid #254EF0;
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+
+        .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .category-info {
+            font-size: 12px;
+            color: #777;
+            margin-top: 2px;
+        }
+
+        .track-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: transparent;
+            color: #888;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+        .pre-start-msg {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .pre-start-msg strong {
+            color: #e5e5e5;
+        }
+
+        .current-label {
+            display: none;
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #254EF0;
+            background: rgba(37, 78, 240, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 2px;
+        }
+
+        /* Proximity badge */
+        .proximity-badge {
+            font-size: 13px;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 8px;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.08);
+            color: #888;
+        }
+
+        .proximity-badge.now {
+            background: #254EF0;
+            color: #fff;
+            font-size: 14px;
+            animation: pulse-badge 2s ease-in-out infinite;
+        }
+
+        .proximity-badge.urgent {
+            background: rgba(255, 77, 0, 0.25);
+            color: #FF4D00;
+            font-size: 14px;
+        }
+
+        .proximity-badge.soon {
+            background: rgba(57, 255, 20, 0.18);
+            color: #39FF14;
+        }
+
+        @keyframes pulse-badge {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Jump to Current FAB */
+        #jumpToCurrent {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            padding: 10px 20px;
+            background: #254EF0;
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 20;
+            box-shadow: 0 4px 20px rgba(37, 78, 240, 0.4);
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #jumpToCurrent.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Next Up bar */
+        .next-up-bar {
+            display: none;
+            margin: 0 -20px;
+            padding: 14px 20px;
+            background: #1a1520;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .next-up-bar.visible {
+            display: block;
+        }
+
+        .next-up-bar.urgent-state {
+            background: linear-gradient(135deg, rgba(255, 77, 0, 0.15) 0%, #1a1520 70%);
+            border-bottom-color: rgba(255, 77, 0, 0.2);
+        }
+
+        .next-up-bar.soon-state {
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.08) 0%, #1a1520 70%);
+            border-bottom-color: rgba(57, 255, 20, 0.15);
+        }
+
+        .next-up-bar.onstage-state {
+            background: linear-gradient(135deg, rgba(255, 77, 0, 0.2) 0%, rgba(255, 77, 0, 0.06) 100%);
+            border-bottom-color: rgba(255, 77, 0, 0.3);
+            animation: onstage-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes onstage-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
+
+        .next-up-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.55);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .next-up-text strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .next-up-text .next-up-count {
+            font-weight: 800;
+            color: #c084fc;
+        }
+
+        .next-up-bar.urgent-state .next-up-count {
+            color: #FF4D00;
+        }
+
+        .next-up-bar.soon-state .next-up-count {
+            color: #39FF14;
+        }
+
+        .next-up-bar.onstage-state .next-up-text {
+            color: #FF4D00;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .next-up-bar.onstage-state .next-up-text strong {
+            color: #fff;
+        }
+
+        /* Admin bar */
+        .admin-bar {
+            display: none;
+            padding: 10px 16px;
+            background: rgba(37, 78, 240, 0.1);
+            border-bottom: 1px solid rgba(37, 78, 240, 0.3);
+            gap: 8px;
+            align-items: center;
+        }
+
+        .admin-bar.visible {
+            display: flex;
+        }
+
+        .admin-bar input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(37, 78, 240, 0.4);
+            border-radius: 8px;
+            color: #e5e5e5;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            outline: none;
+            text-align: center;
+        }
+
+        .admin-bar input::placeholder {
+            color: #555;
+            font-weight: 500;
+        }
+
+        .admin-bar button {
+            padding: 8px 16px;
+            background: #254EF0;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .admin-bar .admin-label {
+            font-size: 10px;
+            color: #254EF0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Loading state */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
 </head>
 
-<body class="flex flex-col min-h-screen max-w-md mx-auto overflow-x-hidden bg-dark text-white antialiased w-full">
+<body>
+    <header>
+        <div class="header-top">
+            <img src="./62ace49c152a984444341217_Rev Nav Logo.svg" alt="Revel" class="logo">
+            <span class="event-info">Tulsa, OK · Mar 6–8</span>
+        </div>
 
-    <!-- Header -->
-    <header class="pt-6 px-6 pb-4 flex justify-center items-center">
-        <img src="./62ace49c152a984444341217_Rev Nav Logo.svg" alt="Revel" class="h-8">
-        <button id="alertToggle" class="hidden"></button>
-        <span id="competitionName" class="hidden">Revel Dance Competition</span>
-    </header>
+        <!-- Search (expandable) -->
+        <div class="search-wrap" id="searchWrap">
+            <input type="text" id="searchInput" placeholder="Search dances, studios..." autocomplete="off">
+            <button class="search-clear" id="searchClear">✕</button>
+        </div>
 
-    <main class="flex-grow px-6 space-y-6 pb-6">
+        <!-- Live Stream -->
+        <button class="live-btn" id="liveToggleBtn">
+            <span class="live-dot"></span>
+            Watch Live
+            <svg class="live-chevron" id="liveChevron" width="16" height="16" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+            </svg>
+        </button>
+        <div class="live-container" id="liveStreamContainer">
+            <iframe id="liveStreamFrame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
 
-        <!-- Watch Live (collapsible) -->
-        <section>
-            <button id="liveToggleBtn"
-                class="w-full bg-surface border border-white/5 rounded-2xl px-4 py-3 flex items-center justify-between hover:bg-dark transition-colors">
-                <div class="flex items-center gap-2">
-                    <span class="text-lg">📺</span>
-                    <span class="text-sm font-bold text-white">Watch Live</span>
-                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                </div>
-                <svg id="liveChevron" class="w-4 h-4 text-gray-500 transition-transform duration-300" fill="none"
-                    stroke="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+        <!-- Filters -->
+        <nav>
+            <button class="my-dances-btn" id="trackedToggle">My Dances</button>
+            <button class="cat-btn" data-cat="Mini">Mini</button>
+            <button class="cat-btn" data-cat="Junior">Junior</button>
+            <button class="cat-btn" data-cat="Teen">Teen</button>
+            <button class="cat-btn" data-cat="Senior">Senior</button>
+            <button class="search-btn" id="searchBtn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8" stroke-width="2"/>
+                    <path d="M21 21l-4.35-4.35" stroke-width="2" stroke-linecap="round"/>
                 </svg>
             </button>
-            <div id="liveStreamContainer" class="overflow-hidden transition-all duration-300 ease-in-out"
-                style="max-height: 0;">
-                <div class="mt-2 rounded-2xl overflow-hidden border border-white/5 bg-black aspect-video">
-                    <iframe id="liveStreamFrame" width="100%" height="100%" frameborder="0"
-                        allow="autoplay; encrypted-media" allowfullscreen style="border: 0;"></iframe>
-                </div>
-            </div>
-        </section>
-
-        <!-- On Stage Display -->
-        <section class="bg-surface rounded-3xl p-6 border border-white/5 text-center">
-            <p class="text-electricBlue font-bold tracking-widest text-[10px] mb-3 uppercase">On Stage</p>
-            <div class="flex items-center justify-center gap-4">
-                <button id="prevDanceBtn"
-                    class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">&minus;</button>
-                <div class="min-w-[4rem]">
-                    <div class="text-6xl font-black text-white leading-none cursor-pointer hover:text-electricBlue transition-colors"
-                        id="currentDanceDisplay">...</div>
-                    <input type="text" id="currentDanceInput" size="4" maxlength="4"
-                        class="hidden text-6xl font-black text-center bg-transparent border-b-2 border-electricBlue text-electricBlue leading-none focus:outline-none"
-                        inputmode="text" placeholder="---">
-                </div>
-                <button id="nextDanceBtn"
-                    class="w-12 h-12 rounded-xl bg-dark border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 active:scale-90 transition-all text-2xl font-bold">+</button>
-            </div>
-            <p class="text-[10px] text-gray-600 mt-1" id="tapHint">Tap number to edit</p>
-            <h3 class="font-bold text-sm mt-2" id="currentDanceTitle">Loading...</h3>
-            <p class="text-xs text-gray-500" id="currentDanceStudio"></p>
-        </section>
-
-        <!-- Schedule Change Banner (hidden by default) -->
-        <div id="scheduleChangeBanner" class="hidden">
-            <div class="bg-yellow-400/10 border border-yellow-400/30 rounded-2xl px-4 py-3 flex items-center gap-3">
-                <span class="text-yellow-400 text-lg">⚠️</span>
-                <div class="flex-1 min-w-0">
-                    <p class="text-yellow-400 font-bold text-xs">Schedule Change</p>
-                    <p id="scheduleChangeText" class="text-yellow-200 text-xs">The running order has changed</p>
-                </div>
-                <button id="dismissBanner"
-                    class="text-yellow-400/50 hover:text-yellow-400 text-lg font-bold transition-colors">&times;</button>
-            </div>
+        </nav>
+        <div class="next-up-bar" id="nextUpBar">
+            <div class="next-up-text" id="nextUpText"></div>
         </div>
+    </header>
 
-        <!-- Track a Dance -->
-        <section>
-            <div class="bg-surface rounded-2xl p-4 border border-white/5 relative">
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-2">Track a Dance</p>
-                <div class="flex gap-2">
-                    <input type="text" id="danceTrackInput" placeholder="Search by #, name, or studio"
-                        class="bg-dark border border-gray-700 rounded-xl px-4 py-2.5 flex-1 min-w-0 text-sm focus:outline-none focus:border-electricBlue transition-colors"
-                        autocomplete="off">
-                    <button id="addTrackBtn"
-                        class="bg-surface border border-gray-700 text-gray-400 font-bold px-5 rounded-xl hover:text-white hover:border-gray-500 active:scale-95 transition-all text-lg">+</button>
-                </div>
-                <div id="searchResults"
-                    class="hidden absolute left-0 right-0 top-full mt-1 mx-4 bg-dark border border-gray-700 rounded-xl overflow-hidden z-10 max-h-60 overflow-y-auto">
-                </div>
-            </div>
-        </section>
+    <div class="admin-bar" id="adminBar">
+        <span class="admin-label">Admin</span>
+        <input type="text" id="adminDanceInput" placeholder="Dance #" inputmode="text">
+        <button id="adminSetBtn">Set</button>
+    </div>
 
-        <!-- Quick Add Studio -->
-        <div class="flex gap-2">
-            <button id="premierDanceBtn"
-                class="flex-1 bg-surface border border-electricBlue/20 rounded-xl px-3 py-2.5 text-xs font-bold text-electricBlue hover:bg-electricBlue/10 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                <span>💃</span> Premier — <span id="premierDayLabel">Today</span>
-            </button>
-            <button id="premierTomorrowBtn"
-                class="flex-1 bg-surface border border-gray-700 rounded-xl px-3 py-2.5 text-xs font-bold text-gray-400 hover:bg-surface hover:text-white hover:border-gray-500 active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                <span>📅</span> Premier — <span id="premierTomorrowLabel">Tomorrow</span>
-            </button>
-        </div>
+    <div class="dance-count" id="danceCount" style="padding: 8px 20px 4px"></div>
+    <div class="list" id="list">
+        <div class="loading">Loading schedule...</div>
+    </div>
 
-        <!-- Tracked Dances -->
-        <section>
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">My Dances
-                    <span class="text-electricBlue" id="trackedCount">0</span>
-                </h3>
-            </div>
-            <div id="trackedDancesContainer" class="space-y-3">
-                <p class="text-gray-600 text-sm text-center py-8">Add a dance number above to start tracking</p>
-            </div>
-        </section>
+    <button id="jumpToCurrent">Jump to current</button>
 
-    </main>
+    <script type="module">
+        import { database, ref, onValue, set } from './js/firebase-config.js';
+        import { loadSchedule, getDance, dancesAway, getOrderedKeys, getPosition } from './js/schedule.js';
 
-    <p class="text-gray-700 text-xs text-center pb-4">No login required. Just pick your dances and watch live.</p>
+        // --- State ---
+        let currentDanceKey = null;
+        let previousDanceKey = null;
+        let isOutOfOrder = false;
+        let highlightedDances = JSON.parse(localStorage.getItem('highlightedDances') || '[]');
+        let activeDay = 'Saturday';
+        let trackedOnly = false;
+        let searchQuery = '';
+        let activeCategory = null;
+        let currentRowObserver = null;
 
-    <script type="module" src="js/app.js"></script>
+        // --- DOM refs ---
+        const listEl = document.getElementById('list');
+        const countEl = document.getElementById('danceCount');
+        const jumpBtn = document.getElementById('jumpToCurrent');
+        const nextUpBar = document.getElementById('nextUpBar');
+        const nextUpText = document.getElementById('nextUpText');
+        const liveToggleBtn = document.getElementById('liveToggleBtn');
+        const liveStreamContainer = document.getElementById('liveStreamContainer');
+        const liveStreamFrame = document.getElementById('liveStreamFrame');
+        const liveChevron = document.getElementById('liveChevron');
+        const trackedToggle = document.getElementById('trackedToggle');
+        const searchBtn = document.getElementById('searchBtn');
+        const searchWrap = document.getElementById('searchWrap');
+        const searchInput = document.getElementById('searchInput');
+        const searchClear = document.getElementById('searchClear');
+        const catBtns = document.querySelectorAll('.cat-btn');
+        const adminBar = document.getElementById('adminBar');
+        const adminDanceInput = document.getElementById('adminDanceInput');
+        const adminSetBtn = document.getElementById('adminSetBtn');
+        const eventInfo = document.querySelector('.event-info');
+
+        // --- Init ---
+        async function init() {
+            await loadSchedule();
+
+            // Auto-detect day
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            if (['Thursday', 'Friday', 'Saturday', 'Sunday'].includes(today)) {
+                activeDay = today;
+            }
+
+            renderList();
+            setupFirebaseListener();
+            setupLiveStream();
+            setupTrackedToggle();
+            setupSearch();
+            setupAdmin();
+            setupJumpButton();
+        }
+
+        // --- Render dance list ---
+        function renderList() {
+            const orderedKeys = getOrderedKeys();
+            const fragment = document.createDocumentFragment();
+            let visibleCount = 0;
+            let highlightedCount = 0;
+
+            for (const key of orderedKeys) {
+                const dance = getDance(key);
+                if (!dance || dance.day !== activeDay) continue;
+                if (trackedOnly && !highlightedDances.includes(key)) continue;
+                if (activeCategory && !(dance.category || '').startsWith(activeCategory)) continue;
+                if (searchQuery) {
+                    const q = searchQuery;
+                    const haystack = `${key} ${dance.routine_title} ${dance.studio} ${dance.category || ''}`.toLowerCase();
+                    if (!haystack.includes(q)) continue;
+                }
+
+                // Hide dances that have already performed
+                if (currentDanceKey) {
+                    const away = dancesAway(currentDanceKey, key);
+                    if (away !== null && away < 0) continue;
+                }
+
+                visibleCount++;
+                const isHighlighted = highlightedDances.includes(key);
+                if (isHighlighted) highlightedCount++;
+
+                const row = createDanceRow(key, dance, isHighlighted);
+                fragment.appendChild(row);
+            }
+
+            listEl.innerHTML = '';
+            if (visibleCount === 0) {
+                listEl.innerHTML = '<div class="loading">No dances found</div>';
+            } else {
+                if (!currentDanceKey) {
+                    const msg = document.createElement('div');
+                    msg.className = 'pre-start-msg';
+                    msg.innerHTML = 'Competition starts at <strong>2:30 PM</strong>';
+                    listEl.appendChild(msg);
+                }
+                listEl.appendChild(fragment);
+            }
+
+            countEl.innerHTML = `${visibleCount} dances` +
+                (highlightedCount > 0 ? ` · <span>${highlightedCount} saved</span>` : '');
+
+            updateProximityBadges();
+                updateNextUp();
+            updateCurrentDanceRow();
+        }
+
+        // --- Create a dance row ---
+        function createDanceRow(key, dance, isHighlighted) {
+            const row = document.createElement('div');
+            row.className = 'dance-row';
+            row.dataset.danceKey = key;
+
+            // Actions panel (behind swipe)
+            const actions = document.createElement('div');
+            actions.className = 'dance-actions';
+            const btn = document.createElement('button');
+            btn.className = 'highlight-btn';
+            btn.textContent = isHighlighted ? 'Saved' : 'Save';
+            actions.appendChild(btn);
+
+            // Dance content
+            const danceEl = document.createElement('div');
+            danceEl.className = 'dance' + (isHighlighted ? ' highlighted' : '');
+
+            const num = document.createElement('span');
+            num.className = 'num';
+            num.textContent = key;
+
+            const info = document.createElement('div');
+            info.className = 'info';
+
+            const title = document.createElement('div');
+            title.className = 'title';
+            title.textContent = dance.routine_title;
+
+            const meta = document.createElement('div');
+            meta.className = 'meta';
+            meta.textContent = dance.studio + (dance.time ? ` · ${dance.time}` : '');
+
+            const cat = dance.category || '';
+            const categoryInfo = document.createElement('div');
+            categoryInfo.className = 'category-info';
+            categoryInfo.textContent = cat;
+
+            const currentLabel = document.createElement('div');
+            currentLabel.className = 'current-label';
+            currentLabel.textContent = 'On Stage';
+
+            info.appendChild(title);
+            info.appendChild(meta);
+            info.appendChild(categoryInfo);
+            info.appendChild(currentLabel);
+
+            const trackBtn = document.createElement('button');
+            trackBtn.className = 'track-btn';
+            trackBtn.textContent = 'Track';
+            if (isHighlighted) trackBtn.style.display = 'none';
+
+            danceEl.appendChild(num);
+            danceEl.appendChild(info);
+            danceEl.appendChild(trackBtn);
+
+            row.appendChild(danceEl);
+
+            // Track button — adds tracking
+            trackBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!highlightedDances.includes(key)) highlightedDances.push(key);
+                localStorage.setItem('highlightedDances', JSON.stringify(highlightedDances));
+                danceEl.classList.add('highlighted');
+                trackBtn.style.display = 'none';
+
+                const highlightedCount = highlightedDances.length;
+                const totalVisible = listEl.querySelectorAll('.dance-row:not(.hidden)').length;
+                countEl.innerHTML = `${totalVisible} dances` +
+                    (highlightedCount > 0 ? ` · <span>${highlightedCount} saved</span>` : '');
+                updateProximityBadges();
+                updateNextUp();
+            });
+
+            return row;
+        }
+
+        // --- Firebase listener (read only) ---
+        function setupFirebaseListener() {
+            if (database) {
+                const danceRef = ref(database, 'competitions/revel2026/currentDance');
+                onValue(danceRef, (snapshot) => {
+                    const val = snapshot.val();
+                    if (val) updateCurrentDance(val);
+                });
+            } else {
+                // Fallback to localStorage
+                const saved = localStorage.getItem('danceTrack_currentDance');
+                if (saved) updateCurrentDance(saved);
+            }
+        }
+
+        // --- Update current dance ---
+        function updateCurrentDance(key) {
+            // Detect out-of-order: if new key's position is not after previous key's position
+            isOutOfOrder = false;
+            if (previousDanceKey && key !== previousDanceKey) {
+                const prevPos = getPosition(previousDanceKey);
+                const newPos = getPosition(key);
+                if (prevPos !== -1 && newPos !== -1) {
+                    // Expected: newPos === prevPos + 1 (next in sequence)
+                    // Out of order: jumped forward by more than 1, or went backward
+                    isOutOfOrder = (newPos !== prevPos + 1);
+                } else if (newPos === -1) {
+                    // Dance not in schedule at all — inserted
+                    isOutOfOrder = true;
+                }
+            }
+
+            previousDanceKey = currentDanceKey;
+            currentDanceKey = key;
+
+            // Dance not in schedule at all — treat as out-of-order
+            if (!getDance(key)) isOutOfOrder = true;
+
+            // Re-render to hide past dances
+            renderList();
+        }
+
+        // --- Highlight the current dance row in the list ---
+        function updateCurrentDanceRow() {
+            // Remove previous
+            const prev = listEl.querySelector('.dance.current-dance');
+            if (prev) {
+                prev.classList.remove('current-dance', 'out-of-order-row');
+            }
+
+            if (!currentDanceKey) return;
+
+            const row = listEl.querySelector(`[data-dance-key="${currentDanceKey}"]`);
+            if (row) {
+                const danceEl = row.querySelector('.dance');
+                danceEl.classList.add('current-dance');
+                if (isOutOfOrder) danceEl.classList.add('out-of-order-row');
+                observeCurrentRow(row);
+            }
+        }
+
+        // --- Proximity badges ---
+        function updateProximityBadges() {
+            if (!currentDanceKey) return;
+
+            listEl.querySelectorAll('.dance-row').forEach(row => {
+                const key = row.dataset.danceKey;
+                const danceEl = row.querySelector('.dance');
+                const trackBtn = danceEl.querySelector('.track-btn');
+                const isHighlighted = highlightedDances.includes(key);
+
+                // Remove previous badge and classes
+                const oldBadge = danceEl.querySelector('.proximity-badge');
+                if (oldBadge) oldBadge.remove();
+                danceEl.classList.remove('soon-1-2', 'soon-3-5');
+
+                const away = dancesAway(currentDanceKey, key);
+                if (away === null) return;
+                if (away < 0) return;
+
+                // Current dance: always show "On Stage" badge
+                if (away === 0) {
+                    const badge = document.createElement('span');
+                    badge.className = 'proximity-badge now';
+                    badge.textContent = 'On Stage';
+                    if (trackBtn) trackBtn.style.display = 'none';
+                    danceEl.appendChild(badge);
+                    return;
+                }
+
+                // Show track button for non-highlighted, non-current dances
+                if (!isHighlighted) {
+                    if (trackBtn) trackBtn.style.display = '';
+                    return;
+                }
+
+                const badge = document.createElement('span');
+                if (away <= 2) {
+                    danceEl.classList.add('soon-1-2');
+                    badge.className = 'proximity-badge urgent';
+                    badge.textContent = away === 1 ? 'Next' : '2 away';
+                } else if (away <= 5) {
+                    danceEl.classList.add('soon-3-5');
+                    badge.className = 'proximity-badge soon';
+                    badge.textContent = `${away} away`;
+                } else {
+                    badge.className = 'proximity-badge';
+                    badge.textContent = `${away} away`;
+                }
+                badge.style.cursor = 'pointer';
+                badge.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    highlightedDances = highlightedDances.filter(id => id !== key);
+                    localStorage.setItem('highlightedDances', JSON.stringify(highlightedDances));
+                    danceEl.classList.remove('highlighted', 'soon-1-2', 'soon-3-5');
+                    badge.remove();
+                    if (trackBtn) trackBtn.style.display = '';
+
+                    const highlightedCount = highlightedDances.length;
+                    const totalVisible = listEl.querySelectorAll('.dance-row:not(.hidden)').length;
+                    countEl.innerHTML = `${totalVisible} dances` +
+                        (highlightedCount > 0 ? ` · <span>${highlightedCount} saved</span>` : '');
+                    updateNextUp();
+                });
+                danceEl.appendChild(badge);
+            });
+        }
+
+        // --- Next Up sticky bar ---
+        function updateNextUp() {
+            if (!currentDanceKey || highlightedDances.length === 0) {
+                nextUpBar.classList.remove('visible');
+                return;
+            }
+
+            // Find the closest upcoming tracked dance
+            let closest = null;
+            let closestAway = Infinity;
+
+            for (const key of highlightedDances) {
+                const dance = getDance(key);
+                if (!dance) continue;
+                const away = dancesAway(currentDanceKey, key);
+                if (away === null || away < 0) continue;
+                if (away < closestAway) {
+                    closestAway = away;
+                    closest = { key, dance, away };
+                }
+            }
+
+            if (!closest) {
+                nextUpBar.classList.remove('visible');
+                return;
+            }
+
+            nextUpBar.classList.add('visible');
+            nextUpBar.classList.remove('urgent-state', 'soon-state', 'onstage-state');
+
+            const title = closest.dance.routine_title;
+
+            if (closest.away === 0) {
+                nextUpBar.classList.add('onstage-state');
+                nextUpText.innerHTML = `<strong>${title}</strong> is on stage now!`;
+            } else {
+                if (closest.away <= 2) nextUpBar.classList.add('urgent-state');
+                else if (closest.away <= 5) nextUpBar.classList.add('soon-state');
+
+                const mins = Math.round(closest.away * 2);
+                const danceWord = closest.away === 1 ? 'dance' : 'dances';
+                nextUpText.innerHTML = `<span class="next-up-count">${closest.away} ${danceWord}</span> until <strong>${title}</strong> · ~${mins} min`;
+            }
+        }
+
+        // --- Jump to Current button ---
+        function scrollToRow(row) {
+            const headerHeight = document.querySelector('header').offsetHeight;
+            const rowTop = row.getBoundingClientRect().top + window.scrollY;
+            window.scrollTo({ top: rowTop - headerHeight - 8, behavior: 'smooth' });
+        }
+
+        function setupJumpButton() {
+            jumpBtn.addEventListener('click', () => {
+                if (!currentDanceKey) return;
+                const row = listEl.querySelector(`[data-dance-key="${currentDanceKey}"]`);
+                if (row) scrollToRow(row);
+            });
+        }
+
+        function observeCurrentRow(row) {
+            if (currentRowObserver) currentRowObserver.disconnect();
+
+            currentRowObserver = new IntersectionObserver(entries => {
+                jumpBtn.classList.toggle('visible', !entries[0].isIntersecting);
+            }, { threshold: 0.1 });
+
+            currentRowObserver.observe(row);
+        }
+
+        // --- Live stream toggle ---
+        function setupLiveStream() {
+            let liveOpen = true;
+            // Open by default
+            liveStreamFrame.src = 'https://player.restream.io/?token=2ff6dc8313dd4a7a908680e9e66bfd4c&autoplay=true';
+            liveStreamContainer.style.maxHeight = '300px';
+            liveChevron.style.transform = 'rotate(180deg)';
+
+            liveToggleBtn.addEventListener('click', () => {
+                liveOpen = !liveOpen;
+                if (liveOpen) {
+                    if (!liveStreamFrame.src || liveStreamFrame.src === 'about:blank') {
+                        liveStreamFrame.src = 'https://player.restream.io/?token=2ff6dc8313dd4a7a908680e9e66bfd4c&autoplay=true';
+                    }
+                    liveStreamContainer.style.maxHeight = '300px';
+                    liveChevron.style.transform = 'rotate(180deg)';
+                } else {
+                    liveStreamContainer.style.maxHeight = '0';
+                    liveChevron.style.transform = 'rotate(0)';
+                }
+            });
+        }
+
+        // --- My Dances toggle ---
+        function setupTrackedToggle() {
+            trackedToggle.addEventListener('click', () => {
+                trackedOnly = !trackedOnly;
+                trackedToggle.classList.toggle('active', trackedOnly);
+                renderList();
+            });
+        }
+
+        // --- Search ---
+        function setupSearch() {
+            searchBtn.addEventListener('click', () => {
+                const isOpen = searchWrap.classList.toggle('visible');
+                searchBtn.classList.toggle('active', isOpen);
+                if (isOpen) {
+                    searchInput.focus();
+                } else {
+                    searchInput.value = '';
+                    searchQuery = '';
+                    searchClear.style.display = 'none';
+                    renderList();
+                }
+            });
+            searchInput.addEventListener('input', () => {
+                searchQuery = searchInput.value.trim().toLowerCase();
+                searchClear.style.display = searchQuery ? 'block' : 'none';
+                renderList();
+            });
+            searchClear.addEventListener('click', () => {
+                searchInput.value = '';
+                searchQuery = '';
+                searchClear.style.display = 'none';
+                renderList();
+            });
+
+            // Category filters
+            catBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cat = btn.dataset.cat;
+                    if (activeCategory === cat) {
+                        activeCategory = null;
+                        btn.classList.remove('active');
+                    } else {
+                        catBtns.forEach(b => b.classList.remove('active'));
+                        activeCategory = cat;
+                        btn.classList.add('active');
+                    }
+                    renderList();
+                });
+            });
+        }
+
+        // --- Admin override (long-press logo to toggle) ---
+        function setupAdmin() {
+            let pressTimer = null;
+            eventInfo.addEventListener('touchstart', () => {
+                pressTimer = setTimeout(() => {
+                    adminBar.classList.toggle('visible');
+                }, 1000);
+            }, { passive: true });
+            eventInfo.addEventListener('touchend', () => clearTimeout(pressTimer), { passive: true });
+            eventInfo.addEventListener('touchcancel', () => clearTimeout(pressTimer), { passive: true });
+            // Desktop: long click
+            eventInfo.addEventListener('mousedown', () => {
+                pressTimer = setTimeout(() => {
+                    adminBar.classList.toggle('visible');
+                }, 1000);
+            });
+            eventInfo.addEventListener('mouseup', () => clearTimeout(pressTimer));
+            eventInfo.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+
+            adminSetBtn.addEventListener('click', () => {
+                const val = adminDanceInput.value.trim();
+                if (!val) return;
+                if (database) {
+                    const danceRef = ref(database, 'competitions/revel2026/currentDance');
+                    set(danceRef, val);
+                }
+                localStorage.setItem('danceTrack_currentDance', val);
+                adminDanceInput.value = '';
+            });
+
+            adminDanceInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') adminSetBtn.click();
+            });
+        }
+
+        // --- Cross-tab sync ---
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'highlightedDances') {
+                highlightedDances = JSON.parse(e.newValue || '[]');
+                renderList();
+            }
+        });
+
+        init();
+    </script>
+
+    <script>
+        // Auto-refresh: polls version.json every 60s, reloads if version changes
+        (function() {
+            let currentVersion = null;
+            async function checkVersion() {
+                try {
+                    const res = await fetch('version.json?t=' + Date.now());
+                    const data = await res.json();
+                    if (currentVersion === null) {
+                        currentVersion = data.v;
+                    } else if (data.v !== currentVersion) {
+                        window.location.reload();
+                    }
+                } catch (e) {}
+            }
+            checkVersion();
+            setInterval(checkVersion, 60000);
+        })();
+    </script>
 </body>
 
 </html>
