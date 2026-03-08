@@ -249,7 +249,7 @@
 
         /* Dance List */
         .list {
-            padding: 0 0 140px;
+            padding: 0 0 100px;
         }
 
         .dance-row {
@@ -443,7 +443,7 @@
         /* Jump to Current FAB */
         #jumpToCurrent {
             position: fixed;
-            bottom: 90px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%) translateY(80px);
             padding: 10px 20px;
@@ -467,22 +467,12 @@
 
         /* Next Up bar */
         .next-up-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
             display: none;
             align-items: center;
             gap: 10px;
-            padding: 12px 20px;
-            padding-bottom: calc(12px + env(safe-area-inset-bottom));
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            z-index: 30;
-            max-width: 480px;
-            margin: 0 auto;
+            padding: 10px 20px;
+            background: rgba(37, 78, 240, 0.08);
+            border-bottom: 1px solid rgba(37, 78, 240, 0.2);
         }
 
         .next-up-bar.visible {
@@ -644,6 +634,15 @@
         </div>
     </header>
 
+    <div class="next-up-bar" id="nextUpBar">
+        <div class="next-up-count" id="nextUpCount">--</div>
+        <div class="next-up-info">
+            <div class="next-up-label" id="nextUpLabel">Next saved dance</div>
+            <div class="next-up-title" id="nextUpTitle">--</div>
+            <div class="next-up-meta" id="nextUpMeta"></div>
+        </div>
+    </div>
+
     <div class="admin-bar" id="adminBar">
         <span class="admin-label">Admin</span>
         <input type="text" id="adminDanceInput" placeholder="Dance #" inputmode="text">
@@ -656,15 +655,6 @@
     </div>
 
     <button id="jumpToCurrent">Jump to current</button>
-
-    <div class="next-up-bar" id="nextUpBar">
-        <div class="next-up-count" id="nextUpCount">--</div>
-        <div class="next-up-info">
-            <div class="next-up-label" id="nextUpLabel">Next saved dance</div>
-            <div class="next-up-title" id="nextUpTitle">--</div>
-            <div class="next-up-meta" id="nextUpMeta"></div>
-        </div>
-    </div>
 
     <script type="module">
         import { database, ref, onValue, set } from './js/firebase-config.js';
@@ -1018,6 +1008,7 @@
                 nextUpCount.textContent = 'ON';
                 nextUpCount.className = 'next-up-count urgent';
                 nextUpLabel.textContent = 'On stage now';
+                nextUpMeta.textContent = '';
             } else {
                 nextUpCount.textContent = closest.away;
                 nextUpLabel.textContent = closest.away === 1 ? 'dance away' : 'dances away';
@@ -1028,10 +1019,13 @@
                 } else {
                     nextUpCount.className = 'next-up-count';
                 }
+                // Estimated wait (~2.5 min per dance)
+                const minWait = Math.round(closest.away * 2);
+                const maxWait = Math.round(closest.away * 3);
+                nextUpMeta.textContent = `~${minWait}-${maxWait} min`;
             }
 
             nextUpTitle.textContent = `#${closest.key} — ${closest.dance.routine_title}`;
-            nextUpMeta.textContent = closest.dance.studio;
         }
 
         // --- Jump to Current button ---
