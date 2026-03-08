@@ -4065,6 +4065,27 @@
       "routine_title": "Telephone",
       "studio": "Elite Dance of Tulsa"
     },
+    "55A": {
+      "day": "Thursday",
+      "time": "6:22 PM",
+      "category": "Teen Lyrical Solo",
+      "routine_title": "Closure",
+      "studio": "High Pointe Performing Arts Studio"
+    },
+    "400A": {
+      "day": "Friday",
+      "time": "8:02 PM",
+      "category": "Senior Contemporary Solo",
+      "routine_title": "Hope There's Someone",
+      "studio": "Elite Dance of Tulsa"
+    },
+    "405A": {
+      "day": "Friday",
+      "time": "8:19 PM",
+      "category": "Senior Lyrical Solo",
+      "routine_title": "Gravity",
+      "studio": "Elite Dance of Tulsa"
+    },
     "581": {
       "day": "Sunday",
       "time": "7:00 AM",
@@ -4105,6 +4126,13 @@
       "time": "7:11 AM",
       "category": "Mini Jazz Duo/Trio",
       "routine_title": "Girls Night Out",
+      "studio": "Premier Dance"
+    },
+    "586A": {
+      "day": "Sunday",
+      "time": "7:14 AM",
+      "category": "RevKids Lyrical Solo",
+      "routine_title": "Fly Me to the Moon",
       "studio": "Premier Dance"
     },
     "587": {
@@ -4196,7 +4224,7 @@
       "time": "7:45 AM",
       "category": "Mini Broadway Duo/Trio",
       "routine_title": "Easy Street",
-      "studio": "DANCE est Joie"
+      "studio": "DANCE est Joie, Inc."
     },
     "600": {
       "day": "Sunday",
@@ -4204,34 +4232,6 @@
       "category": "Mini Jazz Duo/Trio",
       "routine_title": "Hung Up",
       "studio": "High Pointe Performing Arts Studio"
-    },
-    "55A": {
-      "day": "Thursday",
-      "time": "6:22 PM",
-      "category": "Teen Lyrical Solo",
-      "routine_title": "Closure",
-      "studio": "High Pointe Performing Arts Studio"
-    },
-    "400A": {
-      "day": "Friday",
-      "time": "8:02 PM",
-      "category": "Senior Contemporary Solo",
-      "routine_title": "Hope There's Someone",
-      "studio": "Elite Dance of Tulsa"
-    },
-    "405A": {
-      "day": "Friday",
-      "time": "8:19 PM",
-      "category": "Senior Lyrical Solo",
-      "routine_title": "Gravity",
-      "studio": "Elite Dance of Tulsa"
-    },
-    "586A": {
-      "day": "Sunday",
-      "time": "7:14 AM",
-      "category": "RevKids Lyrical Solo",
-      "routine_title": "Fly Me to the Moon",
-      "studio": "Premier Dance"
     }
   }
 }
